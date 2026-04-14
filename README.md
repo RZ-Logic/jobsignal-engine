@@ -265,8 +265,24 @@ If you self-host n8n or run n8n Desktop, Workflow 1d adds LinkedIn and Indeed sc
 │  (Python Flask)  │
 └──────────────────┘
 ```
+---
 
-### Workflow Reference
+###  🔧 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Orchestration | n8n (self-hosted, Cloud, or Desktop) |
+| Database | Airtable |
+| AI | Gemma 4, GPT-5 mini, or any OpenAI-compatible model |
+| CV Rendering | Python + python-docx (Docker sidecar) |
+| Job Scraping | JobSpy + Flask (Docker sidecar) |
+| Reverse Proxy | Caddy |
+| Persistence | PostgreSQL |
+| Notifications | Gmail SMTP / Resend / Discord |
+
+---
+
+### 📋 Workflow Reference
 
 | Workflow | Purpose | Schedule | Key Details |
 |----------|---------|----------|-------------|

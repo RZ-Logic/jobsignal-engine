@@ -1,0 +1,140 @@
+Company Name,Careers URL,API Endpoint,Scan Method,Title Keywords,Enabled,Notes,Category
+Anthropic,https://www.anthropic.com/careers,https://boards-api.greenhouse.io/v1/boards/anthropic/jobs,Greenhouse API,,TRUE,AI safety lab,AI Labs
+OpenAI,https://openai.com/careers,https://api.ashbyhq.com/posting-api/job-board/openai?includeCompensation=true,Ashby API,,TRUE,Leading AI lab,AI Labs
+Mistral,https://mistral.ai/careers,https://api.lever.co/v0/postings/mistral,Lever API,,TRUE,European AI lab,AI Labs
+Cohere,https://cohere.com/careers,https://api.ashbyhq.com/posting-api/job-board/cohere?includeCompensation=true,Ashby API,,TRUE,Enterprise AI,AI Labs
+Stability AI,https://stability.ai/careers,https://boards-api.greenhouse.io/v1/boards/stabilityai/jobs,Greenhouse API,,TRUE,Generative AI,AI Labs
+Perplexity,https://www.perplexity.ai/careers,https://api.ashbyhq.com/posting-api/job-board/perplexity?includeCompensation=true,Ashby API,,TRUE,AI search,AI Labs
+Inflection AI,https://inflection.ai/careers,https://boards-api.greenhouse.io/v1/boards/inflectionai/jobs,Greenhouse API,,TRUE,Conversational AI,AI Labs
+Runway,https://runwayml.com/careers,https://api.ashbyhq.com/posting-api/job-board/runway-ml?includeCompensation=true,Ashby API,,TRUE,AI video,AI Labs
+Deepmind,https://deepmind.google/careers,https://boards-api.greenhouse.io/v1/boards/deepmind/jobs,Greenhouse API,,TRUE,Google AI research,AI Labs
+Together AI,https://www.together.ai/careers,https://boards-api.greenhouse.io/v1/boards/togetherai/jobs,Greenhouse API,,TRUE,AI inference,AI Labs
+ElevenLabs,https://elevenlabs.io/careers,https://api.ashbyhq.com/posting-api/job-board/elevenlabs?includeCompensation=true,Ashby API,,TRUE,AI voice,AI Labs
+Labelbox,https://labelbox.com/careers,https://boards-api.greenhouse.io/v1/boards/labelbox/jobs,Greenhouse API,,TRUE,Data labeling,AI/MLOps
+Scale AI,https://scale.com/careers,https://boards-api.greenhouse.io/v1/boards/scaleai/jobs,Greenhouse API,,TRUE,Data labeling at scale,AI/MLOps
+Vercel,https://vercel.com/careers,https://boards-api.greenhouse.io/v1/boards/vercel/jobs,Greenhouse API,,TRUE,Frontend platform,DevTools
+GitLab,https://about.gitlab.com/jobs,https://boards-api.greenhouse.io/v1/boards/gitlab/jobs,Greenhouse API,,TRUE,DevOps platform,DevTools
+Supabase,https://supabase.com/careers,https://api.ashbyhq.com/posting-api/job-board/supabase?includeCompensation=true,Ashby API,,TRUE,Open source Firebase,DevTools
+Netlify,https://www.netlify.com/careers,https://boards-api.greenhouse.io/v1/boards/netlify/jobs,Greenhouse API,,TRUE,Web deployment,DevTools
+Railway,https://railway.app/careers,https://api.ashbyhq.com/posting-api/job-board/railway?includeCompensation=true,Ashby API,,TRUE,Cloud deployment,DevTools
+PlanetScale,https://planetscale.com/careers,https://boards-api.greenhouse.io/v1/boards/planetscale/jobs,Greenhouse API,,TRUE,Database platform,DevTools
+Temporal,https://temporal.io/careers,https://boards-api.greenhouse.io/v1/boards/temporal/jobs,Greenhouse API,,TRUE,Workflow orchestration,DevTools
+Grafana Labs,https://grafana.com/about/careers,https://boards-api.greenhouse.io/v1/boards/grafanalabs/jobs,Greenhouse API,,TRUE,Observability,DevTools
+Datadog,https://careers.datadoghq.com,https://boards-api.greenhouse.io/v1/boards/datadog/jobs,Greenhouse API,,TRUE,Monitoring platform,DevTools
+Cloudflare,https://www.cloudflare.com/careers,https://boards-api.greenhouse.io/v1/boards/cloudflare/jobs,Greenhouse API,,TRUE,CDN and security,DevTools
+LaunchDarkly,https://launchdarkly.com/careers,https://boards-api.greenhouse.io/v1/boards/launchdarkly/jobs,Greenhouse API,,TRUE,Feature flags,DevTools
+CircleCI,https://circleci.com/careers,https://boards-api.greenhouse.io/v1/boards/circleci/jobs,Greenhouse API,,TRUE,CI/CD,DevTools
+Postman,https://www.postman.com/company/careers,https://boards-api.greenhouse.io/v1/boards/postman/jobs,Greenhouse API,,TRUE,API platform,DevTools
+n8n,https://n8n.io/careers,https://api.ashbyhq.com/posting-api/job-board/n8n?includeCompensation=true,Ashby API,,TRUE,Workflow automation,Automation
+Make,https://www.make.com/en/careers,https://boards-api.greenhouse.io/v1/boards/make/jobs,Greenhouse API,,TRUE,Visual automation,Automation
+Workato,https://www.workato.com/careers,https://boards-api.greenhouse.io/v1/boards/workato/jobs,Greenhouse API,,TRUE,Enterprise integration,Automation
+Celigo,https://www.celigo.com/careers,https://boards-api.greenhouse.io/v1/boards/celigo/jobs,Greenhouse API,,TRUE,iPaaS platform,Automation
+Stripe,https://stripe.com/jobs,https://boards-api.greenhouse.io/v1/boards/stripe/jobs,Greenhouse API,,TRUE,Payments,FinTech
+Plaid,https://plaid.com/careers,https://api.lever.co/v0/postings/plaid,Lever API,,TRUE,Financial APIs,FinTech
+Brex,https://www.brex.com/careers,https://boards-api.greenhouse.io/v1/boards/brex/jobs,Greenhouse API,,TRUE,Corporate cards,FinTech
+Ramp,https://ramp.com/careers,https://api.ashbyhq.com/posting-api/job-board/ramp?includeCompensation=true,Ashby API,,TRUE,Spend management,FinTech
+Mercury,https://mercury.com/careers,https://boards-api.greenhouse.io/v1/boards/mercury/jobs,Greenhouse API,,TRUE,Banking for startups,FinTech
+Carta,https://carta.com/careers,https://boards-api.greenhouse.io/v1/boards/carta/jobs,Greenhouse API,,TRUE,Cap table management,FinTech
+Gusto,https://gusto.com/about/careers,https://boards-api.greenhouse.io/v1/boards/gusto/jobs,Greenhouse API,,TRUE,HR and payroll,FinTech
+Affirm,https://www.affirm.com/careers,https://boards-api.greenhouse.io/v1/boards/affirm/jobs,Greenhouse API,,TRUE,BNPL,FinTech
+Coinbase,https://www.coinbase.com/careers,https://boards-api.greenhouse.io/v1/boards/coinbase/jobs,Greenhouse API,,TRUE,Crypto exchange,FinTech
+Airtable,https://airtable.com/careers,https://boards-api.greenhouse.io/v1/boards/airtable/jobs,Greenhouse API,,TRUE,No-code database,B2B SaaS
+Notion,https://www.notion.so/careers,https://api.ashbyhq.com/posting-api/job-board/notion?includeCompensation=true,Ashby API,,TRUE,Workspace platform,B2B SaaS
+Figma,https://www.figma.com/careers,https://boards-api.greenhouse.io/v1/boards/figma/jobs,Greenhouse API,,TRUE,Design platform,B2B SaaS
+Asana,https://asana.com/jobs,https://boards-api.greenhouse.io/v1/boards/asana/jobs,Greenhouse API,,TRUE,Project management,B2B SaaS
+1Password,https://1password.com/careers,https://api.ashbyhq.com/posting-api/job-board/1password?includeCompensation=true,Ashby API,,TRUE,Password manager,Security
+Okta,https://www.okta.com/company/careers,https://boards-api.greenhouse.io/v1/boards/okta/jobs,Greenhouse API,,TRUE,Identity platform,Security
+Tailscale,https://tailscale.com/careers,https://boards-api.greenhouse.io/v1/boards/tailscale/jobs,Greenhouse API,,TRUE,VPN/networking,Security
+Wiz,https://www.wiz.io/careers,https://boards-api.greenhouse.io/v1/boards/wizinc/jobs,Greenhouse API,,TRUE,Cloud security,Security
+HubSpot,https://www.hubspot.com/careers,https://boards-api.greenhouse.io/v1/boards/hubspot/jobs,Greenhouse API,,TRUE,CRM and marketing,GTM/Sales Tech
+Apollo.io,https://www.apollo.io/careers,https://boards-api.greenhouse.io/v1/boards/apolloio/jobs,Greenhouse API,,TRUE,Sales intelligence,GTM/Sales Tech
+ZoomInfo,https://www.zoominfo.com/about/careers,https://boards-api.greenhouse.io/v1/boards/zoominfo/jobs,Greenhouse API,,TRUE,B2B data,GTM/Sales Tech
+6sense,https://6sense.com/company/careers,https://boards-api.greenhouse.io/v1/boards/6sense/jobs,Greenhouse API,,TRUE,ABM platform,GTM/Sales Tech
+Intercom,https://www.intercom.com/careers,https://boards-api.greenhouse.io/v1/boards/intercom/jobs,Greenhouse API,,TRUE,Customer messaging,GTM/Sales Tech
+Twilio,https://www.twilio.com/company/jobs,https://boards-api.greenhouse.io/v1/boards/twilio/jobs,Greenhouse API,,TRUE,Communication APIs,GTM/Sales Tech
+Braze,https://www.braze.com/company/careers,https://boards-api.greenhouse.io/v1/boards/braze/jobs,Greenhouse API,,TRUE,Customer engagement,GTM/Sales Tech
+Amplitude,https://amplitude.com/careers,https://boards-api.greenhouse.io/v1/boards/amplitude/jobs,Greenhouse API,,TRUE,Product analytics,Analytics
+Mixpanel,https://mixpanel.com/careers,https://boards-api.greenhouse.io/v1/boards/mixpanel/jobs,Greenhouse API,,TRUE,Product analytics,Analytics
+Fivetran,https://www.fivetran.com/careers,https://boards-api.greenhouse.io/v1/boards/fivetran/jobs,Greenhouse API,,TRUE,Data integration,Data
+Databricks,https://www.databricks.com/company/careers,https://boards-api.greenhouse.io/v1/boards/databricks/jobs,Greenhouse API,,TRUE,Data + AI platform,Data
+Elastic,https://www.elastic.co/careers,https://boards-api.greenhouse.io/v1/boards/elastic/jobs,Greenhouse API,,TRUE,Search and analytics,Data
+Webflow,https://webflow.com/careers,https://boards-api.greenhouse.io/v1/boards/webflow/jobs,Greenhouse API,,TRUE,No-code web builder,E-Commerce
+Contentful,https://www.contentful.com/careers,https://boards-api.greenhouse.io/v1/boards/contentful/jobs,Greenhouse API,,TRUE,Headless CMS,E-Commerce
+Algolia,https://www.algolia.com/careers,https://boards-api.greenhouse.io/v1/boards/algolia/jobs,Greenhouse API,,TRUE,Search API,E-Commerce
+MongoDB,https://www.mongodb.com/careers,https://boards-api.greenhouse.io/v1/boards/mongodb/jobs,Greenhouse API,,TRUE,Document database,Infrastructure
+CockroachDB,https://www.cockroachlabs.com/careers,https://boards-api.greenhouse.io/v1/boards/cockroachlabs/jobs,Greenhouse API,,TRUE,Distributed SQL,Infrastructure
+Tigera,https://www.tigera.io/careers,https://boards-api.greenhouse.io/v1/boards/tigera/jobs,Greenhouse API,,TRUE,Kubernetes security,Infrastructure
+Coreweave,https://www.coreweave.com/careers,https://boards-api.greenhouse.io/v1/boards/coreweave/jobs,Greenhouse API,,TRUE,GPU cloud,Infrastructure
+RunPod,https://www.runpod.io/careers,https://boards-api.greenhouse.io/v1/boards/runpod/jobs,Greenhouse API,,TRUE,GPU cloud,Infrastructure
+Samsara,https://www.samsara.com/company/careers,https://boards-api.greenhouse.io/v1/boards/samsara/jobs,Greenhouse API,,TRUE,IoT platform,IoT/Hardware
+Anduril,https://www.anduril.com/careers,https://boards-api.greenhouse.io/v1/boards/andurilindustries/jobs,Greenhouse API,,TRUE,Defense tech,Hardware/Defense
+SpaceX,https://www.spacex.com/careers,https://boards-api.greenhouse.io/v1/boards/spacex/jobs,Greenhouse API,,TRUE,Space tech,Hardware/Defense
+Watershed,https://watershed.com/careers,https://boards-api.greenhouse.io/v1/boards/watershed/jobs,Greenhouse API,,TRUE,Climate software,Climate
+Replit,https://replit.com/site/careers,https://api.ashbyhq.com/posting-api/job-board/replit?includeCompensation=true,Ashby API,,TRUE,AI coding platform,AI/DevTools
+Lattice,https://lattice.com/careers,https://boards-api.greenhouse.io/v1/boards/lattice/jobs,Greenhouse API,,TRUE,People management,HR Tech
+Deel,https://www.deel.com/careers,https://api.ashbyhq.com/posting-api/job-board/deel?includeCompensation=true,Ashby API,,TRUE,Global payroll,HR Tech
+Remote.com,https://remote.com/careers,https://boards-api.greenhouse.io/v1/boards/remotecom/jobs,Greenhouse API,,TRUE,Global employment,HR Tech
+Greenhouse,https://www.greenhouse.com/careers,https://boards-api.greenhouse.io/v1/boards/greenhouse/jobs,Greenhouse API,,TRUE,ATS platform,HR Tech
+Ashby,https://www.ashbyhq.com/careers,https://api.ashbyhq.com/posting-api/job-board/ashby?includeCompensation=true,Ashby API,,TRUE,ATS platform,HR Tech
+Calendly,https://calendly.com/careers,https://boards-api.greenhouse.io/v1/boards/calendly/jobs,Greenhouse API,,TRUE,Scheduling,B2B SaaS
+Moveworks,https://www.moveworks.com/careers,https://boards-api.greenhouse.io/v1/boards/moveworks/jobs,Greenhouse API,,TRUE,Enterprise AI,AI Labs
+Pendo,https://www.pendo.io/careers,https://boards-api.greenhouse.io/v1/boards/pendo/jobs,Greenhouse API,,TRUE,Product experience,B2B SaaS
+JFrog,https://jfrog.com/careers,https://boards-api.greenhouse.io/v1/boards/jfrog/jobs,Greenhouse API,,TRUE,DevOps,DevTools
+Cockroach Labs,https://www.cockroachlabs.com/careers,https://boards-api.greenhouse.io/v1/boards/cockroachlabs/jobs,Greenhouse API,,TRUE,Distributed database,Infrastructure
+SingleStore,https://www.singlestore.com/careers,https://boards-api.greenhouse.io/v1/boards/singlestore/jobs,Greenhouse API,,TRUE,Real-time database,Data
+ClickHouse,https://clickhouse.com/careers,https://boards-api.greenhouse.io/v1/boards/clickhouse/jobs,Greenhouse API,,TRUE,Analytics database,Data
+Materialize,https://materialize.com/careers,https://boards-api.greenhouse.io/v1/boards/materialize/jobs,Greenhouse API,,TRUE,Streaming database,Data
+Hightouch,https://hightouch.com/careers,https://boards-api.greenhouse.io/v1/boards/hightouch/jobs,Greenhouse API,,TRUE,Reverse ETL / CDP,Data
+LangChain,https://www.langchain.com/careers,https://api.ashbyhq.com/posting-api/job-board/langchain?includeCompensation=true,Ashby API,,TRUE,LLM framework,AI/MLOps
+Vectara,https://vectara.com/careers,https://boards-api.greenhouse.io/v1/boards/vectara/jobs,Greenhouse API,,TRUE,RAG platform,AI/MLOps
+PolyAI,https://poly.ai/careers,https://boards-api.greenhouse.io/v1/boards/polyai/jobs,Greenhouse API,,TRUE,Voice AI,AI Labs
+Hume AI,https://www.hume.ai/careers,https://boards-api.greenhouse.io/v1/boards/hume/jobs,Greenhouse API,,TRUE,Emotion AI,AI Labs
+Assembly AI,https://www.assemblyai.com/careers,https://boards-api.greenhouse.io/v1/boards/assemblyai/jobs,Greenhouse API,,TRUE,Speech AI,AI Labs
+Typeform,https://www.typeform.com/careers,https://boards-api.greenhouse.io/v1/boards/typeform/jobs,Greenhouse API,,TRUE,Forms,B2B SaaS
+Flexport,https://www.flexport.com/careers,https://boards-api.greenhouse.io/v1/boards/flexport/jobs,Greenhouse API,,TRUE,Logistics,Supply Chain
+project44,https://www.project44.com/careers,https://boards-api.greenhouse.io/v1/boards/project44/jobs,Greenhouse API,,TRUE,Supply chain visibility,Supply Chain
+Sigma Computing,https://www.sigmacomputing.com/careers,https://boards-api.greenhouse.io/v1/boards/sigmacomputing/jobs,Greenhouse API,,TRUE,Cloud analytics,Data
+FullStory,https://www.fullstory.com/careers,https://api.ashbyhq.com/posting-api/job-board/fullstory?includeCompensation=true,Ashby API,,TRUE,Digital experience,Analytics
+PostHog,https://posthog.com/careers,https://api.ashbyhq.com/posting-api/job-board/posthog?includeCompensation=true,Ashby API,,TRUE,Product analytics,Analytics
+Sumo Logic,https://www.sumologic.com/company/careers,https://boards-api.greenhouse.io/v1/boards/sumologic/jobs,Greenhouse API,,TRUE,Log analytics,DevTools
+New Relic,https://newrelic.com/about/careers,https://boards-api.greenhouse.io/v1/boards/newrelic/jobs,Greenhouse API,,TRUE,Observability,DevTools
+PagerDuty,https://www.pagerduty.com/careers,https://boards-api.greenhouse.io/v1/boards/pagerduty/jobs,Greenhouse API,,TRUE,Incident management,DevTools
+Fastly,https://www.fastly.com/about/careers,https://boards-api.greenhouse.io/v1/boards/fastly/jobs,Greenhouse API,,TRUE,Edge cloud,Infrastructure
+Cribl,https://cribl.io/careers,https://boards-api.greenhouse.io/v1/boards/cribl/jobs,Greenhouse API,,TRUE,Observability pipeline,DevTools
+Tines,https://www.tines.com/careers,https://boards-api.greenhouse.io/v1/boards/tines/jobs,Greenhouse API,,TRUE,Security automation,Automation
+Torq,https://torq.io/careers,https://boards-api.greenhouse.io/v1/boards/torq/jobs,Greenhouse API,,TRUE,Security automation,Automation
+Handshake,https://joinhandshake.com/careers,https://boards-api.greenhouse.io/v1/boards/handshake/jobs,Greenhouse API,,TRUE,Career network,HR Tech
+Culture Amp,https://www.cultureamp.com/company/careers,https://boards-api.greenhouse.io/v1/boards/cultureamp/jobs,Greenhouse API,,TRUE,Employee experience,HR Tech
+Marqeta,https://www.marqeta.com/company/careers,https://boards-api.greenhouse.io/v1/boards/marqeta/jobs,Greenhouse API,,TRUE,Card issuing,FinTech
+Alloy,https://www.alloy.com/careers,https://boards-api.greenhouse.io/v1/boards/alloy/jobs,Greenhouse API,,TRUE,Identity risk,FinTech
+Lithic,https://www.lithic.com/careers,https://boards-api.greenhouse.io/v1/boards/lithic/jobs,Greenhouse API,,TRUE,Card issuing API,FinTech
+Abnormal Security,https://abnormalsecurity.com/careers,https://boards-api.greenhouse.io/v1/boards/abnormalsecurity/jobs,Greenhouse API,,TRUE,Email security,Security
+Attio,https://attio.com/careers,https://api.ashbyhq.com/posting-api/job-board/attio?includeCompensation=true,Ashby API,,TRUE,CRM,GTM/Sales Tech
+Storyblok,https://www.storyblok.com/careers,https://boards-api.greenhouse.io/v1/boards/storyblok/jobs,Greenhouse API,,TRUE,Headless CMS,DevTools
+AlixPartners,https://www.alixpartners.com/careers,https://boards-api.greenhouse.io/v1/boards/alixpartners/jobs,Greenhouse API,,TRUE,Turnaround consulting,Consulting
+Jane Street,https://www.janestreet.com/join-jane-street,https://boards-api.greenhouse.io/v1/boards/janestreet/jobs,Greenhouse API,,TRUE,Quantitative trading,Finance
+Point72,https://point72.com/careers,https://boards-api.greenhouse.io/v1/boards/point72/jobs,Greenhouse API,,TRUE,Asset management,Finance
+a16z,https://a16z.com/about/careers,https://boards-api.greenhouse.io/v1/boards/a16z/jobs,Greenhouse API,,TRUE,Venture capital,Finance
+Robinhood,https://robinhood.com/careers,https://boards-api.greenhouse.io/v1/boards/robinhood/jobs,Greenhouse API,,TRUE,Trading platform,Finance
+SoFi,https://www.sofi.com/careers,https://boards-api.greenhouse.io/v1/boards/sofi/jobs,Greenhouse API,,TRUE,Personal finance,Finance
+Betterment,https://www.betterment.com/careers,https://boards-api.greenhouse.io/v1/boards/betterment/jobs,Greenhouse API,,TRUE,Robo-advisor,Finance
+Flatiron Health,https://flatiron.com/careers,https://boards-api.greenhouse.io/v1/boards/flatironhealth/jobs,Greenhouse API,,TRUE,Oncology data,Healthcare
+Veracyte,https://www.veracyte.com/careers,https://boards-api.greenhouse.io/v1/boards/veracyte/jobs,Greenhouse API,,TRUE,Genomic diagnostics,Healthcare
+Recursion,https://www.recursion.com/careers,https://boards-api.greenhouse.io/v1/boards/recursionpharmaceuticals/jobs,Greenhouse API,,TRUE,AI drug discovery,Healthcare
+Opendoor,https://www.opendoor.com/careers,https://boards-api.greenhouse.io/v1/boards/opendoor/jobs,Greenhouse API,,TRUE,iBuying,Real Estate
+Discord,https://discord.com/careers,https://boards-api.greenhouse.io/v1/boards/discord/jobs,Greenhouse API,,TRUE,Community platform,Media
+Reddit,https://www.redditinc.com/careers,https://boards-api.greenhouse.io/v1/boards/reddit/jobs,Greenhouse API,,TRUE,Social platform,Media
+Pinterest,https://www.pinterestcareers.com,https://boards-api.greenhouse.io/v1/boards/pinterest/jobs,Greenhouse API,,TRUE,Visual discovery,Media
+Roblox,https://corp.roblox.com/careers,https://boards-api.greenhouse.io/v1/boards/roblox/jobs,Greenhouse API,,TRUE,Gaming platform,Gaming
+Epic Games,https://www.epicgames.com/careers,https://boards-api.greenhouse.io/v1/boards/epicgames/jobs,Greenhouse API,,TRUE,Gaming,Gaming
+Coursera,https://about.coursera.org/careers,https://boards-api.greenhouse.io/v1/boards/coursera/jobs,Greenhouse API,,TRUE,Online education,Education
+Duolingo,https://careers.duolingo.com,https://boards-api.greenhouse.io/v1/boards/duolingo/jobs,Greenhouse API,,TRUE,Language learning,Education
+Khan Academy,https://www.khanacademy.org/careers,https://boards-api.greenhouse.io/v1/boards/khanacademy/jobs,Greenhouse API,,TRUE,Free education,Education
+2U,https://2u.com/careers,https://boards-api.greenhouse.io/v1/boards/2u/jobs,Greenhouse API,,TRUE,EdTech,Education
+Lyft,https://www.lyft.com/careers,https://boards-api.greenhouse.io/v1/boards/lyft/jobs,Greenhouse API,,TRUE,Ride-sharing,Transportation
+Instacart,https://instacart.careers,https://boards-api.greenhouse.io/v1/boards/instacart/jobs,Greenhouse API,,TRUE,Grocery delivery,Transportation
+Waymo,https://waymo.com/careers,https://boards-api.greenhouse.io/v1/boards/waymo/jobs,Greenhouse API,,TRUE,Autonomous vehicles,Transportation
+Nuro,https://www.nuro.ai/careers,https://boards-api.greenhouse.io/v1/boards/nuro/jobs,Greenhouse API,,TRUE,Autonomous delivery,Transportation
+Sweetgreen,https://jobs.sweetgreen.com,https://boards-api.greenhouse.io/v1/boards/sweetgreen/jobs,Greenhouse API,,TRUE,Fast casual,Food & Consumer
+Allbirds,https://www.allbirds.com/pages/careers,https://boards-api.greenhouse.io/v1/boards/allbirds/jobs,Greenhouse API,,TRUE,DTC footwear,Food & Consumer
+Glossier,https://www.glossier.com/careers,https://boards-api.greenhouse.io/v1/boards/glossier/jobs,Greenhouse API,,TRUE,DTC beauty,Food & Consumer

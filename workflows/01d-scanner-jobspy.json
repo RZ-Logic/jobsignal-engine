@@ -1,0 +1,717 @@
+{
+  "name": "JobSignal - Workflow 1d - Scanner (JobSpy)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "59d8d691-265c-4407-ab12-437f01e73b5f",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8,
+              "triggerAtMinute": 15
+            }
+          ]
+        }
+      },
+      "id": "988bfb42-d32c-42ae-a5af-f8938edb2957",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1120,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblWfL2m2XlVrR3yj",
+          "mode": "list",
+          "cachedResultName": "Search Queries",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblWfL2m2XlVrR3yj"
+        },
+        "filterByFormula": "=AND({Enabled}=TRUE(),{Source Type}='JobSpy')",
+        "options": {}
+      },
+      "id": "675344f6-4405-4a72-bba3-78a719413b60",
+      "name": "Get Search Queries",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -848,
+        -240
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the batch payload for the JobSpy sidecar from Airtable Search Queries rows\n\nconst items = $input.all();\nconst queries = [];\nconst queryMeta = []; // Track record IDs for updating Last Run later\n\nfor (const item of items) {\n  const row = item.json.fields || item.json;\n  const recordId = item.json.id || null;\n  \n  // Skip rows without a query string\n  const queryString = row['Query String'];\n  if (!queryString) continue;\n  \n  // Parse JobSpy Sites (comma-separated string to array)\n  const sitesRaw = row['JobSpy Sites'] || 'indeed,linkedin';\n  const sites = sitesRaw.split(',').map(s => s.trim().toLowerCase()).filter(s => s.length > 0);\n  \n  // Title keywords per query\n  const titleKeywords = row['Title Keywords'] || '';\n  \n  queries.push({\n    search_term: queryString,\n    location: row['Location'] || '',\n    sites: sites,\n    country_indeed: row['Country Filter'] || 'Canada',\n    hours_old: row['Hours Old'] || 72,\n    results_wanted: row['Results Wanted'] || 50,\n    source_tag: row['Source Tag'] || '',\n    description_format: 'markdown',\n    linkedin_fetch_description: true,\n    title_keywords: titleKeywords\n  });\n  \n  queryMeta.push({\n    recordId: recordId,\n    queryName: row['Query'] || row['Query Name'] || queryString\n  });\n}\n\nif (queries.length === 0) {\n  return [{ json: { _empty: true, _message: 'No enabled JobSpy Search Queries found' } }];\n}\n\nreturn [{ json: { queries, queryMeta, queryCount: queries.length } }];"
+      },
+      "id": "ce950adf-7ce4-4dc8-a402-e34704260e68",
+      "name": "Build Batch Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://jobspy-scanner:3457/batch",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ queries: $json.queries }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "8d3de140-dc47-4532-96d7-36a42daa2ee2",
+      "name": "Call JobSpy Scanner",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -176,
+        -240
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": true,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse JobSpy batch response into individual job items\n// Apply per-query title keyword filter, geography filter, and generate FNV-1a Job IDs\n\nconst response = $input.first().json;\n\nif (!response.success) {\n  return [{ json: { _empty: true, _error: response.error || 'JobSpy batch call failed' } }];\n}\n\n// Get the original queries with their per-query title keywords\nconst batchPayload = $('Build Batch Payload').first().json;\nconst originalQueries = batchPayload.queries || [];\n\n// Geography filter — same pattern as Workflows 1a/1b/1c\n// TODO: Read from Profile.Target Geography in v1.1\nconst userGeographies = ['Canada', 'Remote Global', 'Remote North America'];\n\nconst GEO_CONFIG = {\n  'Canada': {\n    substrings: ['canada', 'toronto', 'vancouver', 'montreal', 'ottawa', 'calgary', 'mississauga', 'edmonton', 'waterloo', 'quebec', 'ontario', 'british columbia', 'alberta']\n  },\n  'USA': {\n    substrings: ['united states', 'usa', 'new york', 'san francisco', 'los angeles', 'seattle', 'chicago', 'austin', 'boston', 'denver']\n  },\n  'Remote Global': {\n    substrings: ['remote', 'worldwide', 'global', 'anywhere']\n  },\n  'Remote North America': {\n    substrings: ['remote north america', 'remote - north america', 'remote na', 'remote us/canada', 'remote us and canada']\n  }\n};\n\nconst allowedSubstrings = new Set();\nfor (const geo of userGeographies) {\n  const cfg = GEO_CONFIG[geo];\n  if (cfg) {\n    cfg.substrings.forEach(s => allowedSubstrings.add(s));\n  }\n}\n\nconst matchesGeography = (locationStr, isRemote) => {\n  if (!locationStr || locationStr === 'Not specified') {\n    if (isRemote) return true;\n    return true; // Let unspecified through, Evaluator will filter\n  }\n  const loc = locationStr.toLowerCase();\n  for (const sub of allowedSubstrings) {\n    if (loc.includes(sub)) return true;\n  }\n  return false;\n};\n\n// FNV-1a hash — same as all other scanner workflows\nconst fnv1aHash = (str) => {\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = Math.imul(hash, 0x01000193);\n  }\n  return (hash >>> 0).toString(16).padStart(8, '0');\n};\n\nconst siteToSource = {\n  'indeed': 'Indeed',\n  'linkedin': 'LinkedIn',\n  'zip_recruiter': 'ZipRecruiter',\n  'glassdoor': 'Glassdoor',\n  'google': 'Google Jobs'\n};\n\nconst allJobs = [];\nconst seen = new Set();\nlet rawTotal = 0;\nlet geoFiltered = 0;\nlet titleFiltered = 0;\n\nconst queryResults = response.query_results || [];\n\nfor (let qi = 0; qi < queryResults.length; qi++) {\n  const queryResult = queryResults[qi];\n  const sourceTag = queryResult.source_tag || '';\n  const searchTerm = queryResult.search_term || '';\n  \n  // Get per-query title keywords from the original query config\n  const origQuery = originalQueries[qi] || {};\n  const titleKeywordsRaw = origQuery.title_keywords || '';\n  const titleKeywords = titleKeywordsRaw\n    .split(',')\n    .map(k => k.trim().toLowerCase())\n    .filter(k => k.length > 0);\n  \n  for (const job of (queryResult.jobs || [])) {\n    rawTotal++;\n    if (!job.title || !job.job_url) continue;\n    \n    // Per-query title keyword filter\n    if (titleKeywords.length > 0) {\n      const t = job.title.toLowerCase();\n      if (!titleKeywords.some(kw => t.includes(kw))) {\n        titleFiltered++;\n        continue;\n      }\n    }\n    \n    const location = job.location || 'Not specified';\n    if (!matchesGeography(location, job.is_remote)) {\n      geoFiltered++;\n      continue;\n    }\n    \n    const applyLink = job.job_url_direct || job.job_url;\n    const company = job.company || 'Unknown';\n    \n    const hashInput = `${job.title}|${company}|${applyLink}`;\n    const jobId = fnv1aHash(hashInput) + '-spy';\n    \n    if (seen.has(jobId)) continue;\n    seen.add(jobId);\n    \n    const source = siteToSource[job.site] || job.site || 'Indeed';\n    \n    let salaryInfo = '';\n    if (job.salary_min && job.salary_max) {\n      const currency = job.salary_currency || 'USD';\n      const interval = job.salary_interval || 'yearly';\n      salaryInfo = `${currency} ${Math.round(job.salary_min).toLocaleString()} - ${Math.round(job.salary_max).toLocaleString()} (${interval})`;\n    } else if (job.salary_min) {\n      salaryInfo = `${job.salary_currency || 'USD'} ${Math.round(job.salary_min).toLocaleString()}+`;\n    }\n    \n    let description = job.description || '';\n    if (description.length > 50000) {\n      description = description.substring(0, 50000) + '\\n\\n[Description truncated]';\n    }\n    \n    allJobs.push({\n      json: {\n        jobId,\n        jobTitle: job.title,\n        company,\n        location,\n        applyLink,\n        jobDescription: description,\n        source,\n        sourceQuery: searchTerm,\n        sourceTag,\n        discoveryDate: new Date().toISOString().split('T')[0],\n        salaryInfo,\n        isRemote: job.is_remote || false\n      }\n    });\n  }\n}\n\nif (allJobs.length === 0) {\n  return [{ json: { _empty: true, _message: `JobSpy: ${rawTotal} raw, ${titleFiltered} title-filtered, ${geoFiltered} geo-filtered, 0 survived` } }];\n}\n\nreturn allJobs;"
+      },
+      "id": "744edfcf-e75f-4dfc-817a-34ba70630aff",
+      "name": "Parse & Filter Jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "options": {
+          "fields": [
+            "Job ID"
+          ]
+        }
+      },
+      "id": "609a77a9-b379-42c7-b1fd-095549112d19",
+      "name": "Get Existing Job IDs",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        528,
+        -240
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Deduplicate parsed jobs against existing Pipeline records\n// Same logic as Workflows 1a, 1b, 1c\n\nconst parsedJobs = $('Parse & Filter Jobs').all().filter(item => !item.json._empty);\nconst existingRecords = $('Get Existing Job IDs').all();\n\nconst existingIds = new Set();\nfor (const record of existingRecords) {\n  let jobId = null;\n  if (record.json.fields && record.json.fields['Job ID']) {\n    jobId = record.json.fields['Job ID'];\n  } else if (record.json['Job ID']) {\n    jobId = record.json['Job ID'];\n  }\n  if (jobId) existingIds.add(jobId);\n}\n\nconst netNew = parsedJobs.filter(item => !existingIds.has(item.json.jobId));\n\n// Safety brake: cap at 100 new records per run\nif (netNew.length > 100) {\n  throw new Error(`Safety brake: ${netNew.length} net-new jobs exceeds 100 limit. Review query config or increase cap.`);\n}\n\nif (netNew.length === 0) {\n  return [{ json: { _empty: true, _message: `${parsedJobs.length} jobs found, all already in Pipeline` } }];\n}\n\nreturn netNew;"
+      },
+      "id": "01b8ce34-eaea-4758-9acb-884a4d9036e8",
+      "name": "Deduplicate vs Pipeline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -240
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Job ID": "={{ $json.jobId }}",
+            "Job Title": "={{ $json.jobTitle }}",
+            "Company": "={{ $json.company }}",
+            "Location": "={{ $json.location }}",
+            "Apply Link": "={{ $json.applyLink }}",
+            "Job Description": "={{ $json.jobDescription }}",
+            "Source": "={{ $json.source }}",
+            "Source Query": "={{ $json.sourceQuery }}",
+            "Source Tag": "={{ $json.sourceTag }}",
+            "Discovery Date": "={{ $json.discoveryDate }}",
+            "Status": "New",
+            "Salary Info": "={{ $json.salaryInfo }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Job ID",
+              "displayName": "Job ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Apply Link",
+              "displayName": "Apply Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Job Description",
+              "displayName": "Job Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "LinkedIn",
+                  "value": "LinkedIn"
+                },
+                {
+                  "name": "Indeed",
+                  "value": "Indeed"
+                },
+                {
+                  "name": "Glassdoor",
+                  "value": "Glassdoor"
+                },
+                {
+                  "name": "Google Jobs",
+                  "value": "Google Jobs"
+                },
+                {
+                  "name": "ZipRecruiter",
+                  "value": "ZipRecruiter"
+                },
+                {
+                  "name": "Greenhouse",
+                  "value": "Greenhouse"
+                },
+                {
+                  "name": "Ashby",
+                  "value": "Ashby"
+                },
+                {
+                  "name": "Lever",
+                  "value": "Lever"
+                },
+                {
+                  "name": "Manual",
+                  "value": "Manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source Query",
+              "displayName": "Source Query",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source Tag",
+              "displayName": "Source Tag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Discovery Date",
+              "displayName": "Discovery Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Evaluated",
+                  "value": "Evaluated"
+                },
+                {
+                  "name": "Shortlisted",
+                  "value": "Shortlisted"
+                },
+                {
+                  "name": "Applied",
+                  "value": "Applied"
+                },
+                {
+                  "name": "Interview",
+                  "value": "Interview"
+                },
+                {
+                  "name": "Offer",
+                  "value": "Offer"
+                },
+                {
+                  "name": "Rejected",
+                  "value": "Rejected"
+                },
+                {
+                  "name": "Archived",
+                  "value": "Archived"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fit Score",
+              "displayName": "Fit Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Fit Tier",
+              "displayName": "Fit Tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "Low",
+                  "value": "Low"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Match Reasoning",
+              "displayName": "Match Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Matched Skills",
+              "displayName": "Matched Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Missing Skills",
+              "displayName": "Missing Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CV Tailoring Notes",
+              "displayName": "CV Tailoring Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Salary Info",
+              "displayName": "Salary Info",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Evaluation Cost",
+              "displayName": "AI Evaluation Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Applied Date",
+              "displayName": "Applied Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Response Date",
+              "displayName": "Response Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Outcome Notes",
+              "displayName": "Outcome Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tailored CV Text",
+              "displayName": "Tailored CV Text",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CV Tailoring Cost",
+              "displayName": "CV Tailoring Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tailored CV",
+              "displayName": "Tailored CV",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "9e354fe3-e338-4c7c-8551-8831d903d295",
+      "name": "Create Pipeline Records",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1248,
+        -240
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Workflow 1d — Scanner (JobSpy)\n\n**Self-hosted only.** Requires `jobspy-scanner` Docker sidecar on port 3457.\n\n**Flow:**\n1. Read enabled JobSpy queries from Search Queries table\n2. Send all queries to sidecar `/batch` endpoint in one call\n3. Parse results, apply geography filter, generate Job IDs\n4. Deduplicate against existing Pipeline records\n5. Create net-new records in Pipeline\n\n**Schedule:** Daily 8:15am (after 1a/1b/1c)\n\n**Safety brakes:**\n- Max 100 results per query (sidecar)\n- Max 10 queries per batch (sidecar)\n- Max 100 net-new records per run (dedup node)\n\n**To add queries:** Edit the Search Queries table in Airtable. Set Source Type = JobSpy, Enabled = checked.",
+        "height": 420,
+        "width": 380
+      },
+      "id": "09b319bf-a25f-4c4a-9b4e-8e34bae092f1",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        -720
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Search Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Search Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Search Queries": {
+      "main": [
+        [
+          {
+            "node": "Build Batch Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Batch Payload": {
+      "main": [
+        [
+          {
+            "node": "Call JobSpy Scanner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call JobSpy Scanner": {
+      "main": [
+        [
+          {
+            "node": "Parse & Filter Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Filter Jobs": {
+      "main": [
+        [
+          {
+            "node": "Get Existing Job IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Existing Job IDs": {
+      "main": [
+        [
+          {
+            "node": "Deduplicate vs Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplicate vs Pipeline": {
+      "main": [
+        [
+          {
+            "node": "Create Pipeline Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9fc21017-8b45-4886-bb07-16c94523279e",
+  "meta": {
+    "instanceId": "d7e19fca9705d4d0c36e6fe71822071e2ec1e1c76f266658ed6763dfc41db437"
+  },
+  "id": "sQJg6CQm9dVpCOa8",
+  "tags": []
+}

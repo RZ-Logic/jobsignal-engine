@@ -1,0 +1,11 @@
+FROM python:3.12-slim
+
+RUN pip install --no-cache-dir python-jobspy flask
+
+WORKDIR /opt/jobsignal
+
+COPY scripts/jobspy_service.py /opt/jobsignal/jobspy_service.py
+
+EXPOSE 3457
+
+CMD ["python3", "/opt/jobsignal/jobspy_service.py"]

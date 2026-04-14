@@ -1,0 +1,825 @@
+{
+  "name": "JobSignal - Workflow 3 - Tailor",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "3e7f816c-8bcd-40d7-910f-7b9ed609b5db",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        2544,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "id": "4bc2f1ad-49af-44cf-9efe-a9d38db43d1d",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        2544,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "filterByFormula": "==AND({Status}='Evaluated',{Fit Tier}='High',{Tailored CV Text}='')",
+        "options": {}
+      },
+      "id": "5c001130-b04f-4a3a-a95c-fe386bee3145",
+      "name": "Get High Fit Jobs",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2784,
+        64
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl4hqn6sfFVbLuzd",
+          "mode": "list",
+          "cachedResultName": "Profile",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tbl4hqn6sfFVbLuzd"
+        },
+        "options": {}
+      },
+      "id": "4c8867b6-5026-4e37-9f47-e0531021e8df",
+      "name": "Get Profile",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        3024,
+        64
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the CV tailoring prompt from Profile data and job details\n\nconst profile = $('Get Profile').first().json;\nconst jobs = $('Get High Fit Jobs').all();\n\n// Get CV markdown from Profile — handle both flat and nested field shapes\nconst cvMarkdown = profile.fields \n  ? (profile.fields['CV Markdown'] || profile.fields['Professional Summary'] || '')\n  : (profile['CV Markdown'] || profile['Professional Summary'] || '');\n\nif (!cvMarkdown) {\n  throw new Error('CV Markdown is empty in Profile table. Please add your CV markdown to the Profile.');\n}\n\nconst systemPrompt = `You are an expert CV writer specializing in ATS-optimized resumes for technical professionals.\n\nRULES:\n- Keep ALL factual information accurate — do NOT invent experience, companies, dates, or metrics\n- Rewrite the Professional Summary (first paragraph after contact info) to mirror the JD's language and priorities\n- Reorder and re-emphasize bullet points to highlight matched skills\n- De-emphasize (don't remove) experience unrelated to this role\n- Incorporate the tailoring notes provided\n- Keep the EXACT SAME markdown structure as the original CV:\n  - First line: Full name in caps\n  - Second line: Contact info separated by pipes\n  - Third paragraph: Professional summary\n  - ALL-CAPS section headers (TECHNICAL SKILLS, etc.)\n  - Skills in \"Category: items\" format\n  - Bullet points with • character\n  - Job titles with | separators for company/location/dates\n  - Project names as standalone bold descriptive lines\n- Output clean text. No markdown formatting (no **, no ##, no ---). No commentary, no preamble.\n- The output must be a single-page CV. Do not add content that would push it beyond one page.\nCRITICAL: Do NOT use <thought> tags or any thinking/reasoning before your response. Start your response directly with the tailored CV content. No preamble, no explanation.`;\n\nreturn jobs.map(job => {\n  const fields = job.json.fields || job.json;\n  const recordId = job.json.id || job.json.recordId;\n  \n  return {\n    json: {\n      _systemPrompt: systemPrompt,\n      _cvMarkdown: cvMarkdown,\n      _jobDescription: fields['Job Description'] || '',\n      _matchedSkills: fields['Matched Skills'] || '',\n      _cvTailoringNotes: fields['CV Tailoring Notes'] || '',\n      _jobTitle: fields['Job Title'] || '',\n      _company: fields['Company'] || '',\n      _recordId: recordId\n    }\n  };\n});"
+      },
+      "id": "cacc327d-2f6c-4e9c-8197-2f3302087f00",
+      "name": "Build Tailoring Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3264,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "5b369f58-6cd5-4953-9759-473ae069f2bc",
+      "name": "Loop Over Jobs",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        3488,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json._systemPrompt }}",
+              "role": "system"
+            },
+            {
+              "content": "=Tailor this CV for the target job.\n\nMATCHED SKILLS: {{ $json._matchedSkills }}\n\nTAILORING NOTES: {{ $json._cvTailoringNotes }}\n\nTARGET JOB: {{ $json._jobTitle }} at {{ $json._company }}\n\nJOB DESCRIPTION:\n{{ $json._jobDescription }}\n\nCANDIDATE CV TO TAILOR:\n{{ $json._cvMarkdown }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "options": {}
+      },
+      "id": "d5d0565d-bee1-4065-b334-e9376435d291",
+      "name": "Tailor CV (GPT-5 mini)",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.6,
+      "position": [
+        3696,
+        64
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "openAiApi": {
+          "id": "kFMK08Shp2G4NxIN",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the tailored CV from AI response and prepare for rendering + Airtable update\nconst aiResponse = $input.first().json;\n\n// Extract content — handle both simplified and full response shapes\nlet tailoredCV;\nif (aiResponse.choices && aiResponse.choices[0] && aiResponse.choices[0].message) {\n  tailoredCV = aiResponse.choices[0].message.content;\n} else if (aiResponse.message && aiResponse.message.content) {\n  tailoredCV = aiResponse.message.content;\n} else if (aiResponse.content) {\n  tailoredCV = aiResponse.content;\n} else if (aiResponse.text) {\n  tailoredCV = aiResponse.text;\n} else {\n  tailoredCV = typeof aiResponse === 'string' ? aiResponse : JSON.stringify(aiResponse);\n}\n\n// Strip <thought> tags and everything inside them\nif (typeof tailoredCV === 'string' && tailoredCV.includes('<thought>')) {\n  const thoughtEnd = tailoredCV.indexOf('</thought>');\n  if (thoughtEnd !== -1) {\n    tailoredCV = tailoredCV.substring(thoughtEnd + '</thought>'.length).trim();\n  } else {\n    // No closing tag — find first line that looks like CV content\n    const lines = tailoredCV.split('\\n');\n    const cvStart = lines.findIndex(l => l.trim().length > 0 && !l.trim().startsWith('<thought>') && !l.includes('*   '));\n    if (cvStart !== -1) {\n      tailoredCV = lines.slice(cvStart).join('\\n').trim();\n    }\n  }\n}\n\nif (!tailoredCV || tailoredCV.length < 100) {\n  throw new Error('Tailored CV response too short or empty: ' + (tailoredCV || '').slice(0, 200));\n}\n\n// Calculate cost from actual token usage\nconst INPUT_COST_PER_TOKEN = 0.25 / 1_000_000;\nconst OUTPUT_COST_PER_TOKEN = 2.00 / 1_000_000;\nlet cost = 0;\nconst usage = aiResponse.usage \n  || (aiResponse.message && aiResponse.message.usage)\n  || null;\nif (usage && usage.prompt_tokens && usage.completion_tokens) {\n  cost = (usage.prompt_tokens * INPUT_COST_PER_TOKEN) \n    + (usage.completion_tokens * OUTPUT_COST_PER_TOKEN);\n  cost = Math.round(cost * 1_000_000) / 1_000_000;\n}\n\n// Get job context from the loop\nconst loopItem = $('Loop Over Jobs').item.json;\nconst safeCompany = loopItem._company.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();\nconst filename = `cv_${safeCompany}_${Date.now()}`;\n\nreturn [{\n  json: {\n    recordId: loopItem._recordId,\n    tailoredCV: tailoredCV,\n    company: loopItem._company,\n    jobTitle: loopItem._jobTitle,\n    cost: cost,\n    filename: filename\n  }\n}];"
+      },
+      "id": "2e5aa5d5-48f4-43b4-9f99-d22d07dbe01d",
+      "name": "Parse Tailored CV",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4064,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://cv-renderer:3456/render",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ markdown: $json.tailoredCV, filename: $json.filename }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "80e3498c-9bc3-4d9b-bdbd-323a7b534889",
+      "name": "Render DOCX",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4320,
+        64
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Parse Tailored CV').item.json.recordId }}",
+            "Tailored CV Text": "={{ $('Parse Tailored CV').item.json.tailoredCV }}",
+            "CV Tailoring Cost": "={{ $('Parse Tailored CV').item.json.cost }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Job ID",
+              "displayName": "Job ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Apply Link",
+              "displayName": "Apply Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Job Description",
+              "displayName": "Job Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "LinkedIn",
+                  "value": "LinkedIn"
+                },
+                {
+                  "name": "Indeed",
+                  "value": "Indeed"
+                },
+                {
+                  "name": "Glassdoor",
+                  "value": "Glassdoor"
+                },
+                {
+                  "name": "Google Jobs",
+                  "value": "Google Jobs"
+                },
+                {
+                  "name": "ZipRecruiter",
+                  "value": "ZipRecruiter"
+                },
+                {
+                  "name": "Greenhouse",
+                  "value": "Greenhouse"
+                },
+                {
+                  "name": "Ashby",
+                  "value": "Ashby"
+                },
+                {
+                  "name": "Lever",
+                  "value": "Lever"
+                },
+                {
+                  "name": "Manual",
+                  "value": "Manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source Query",
+              "displayName": "Source Query",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source Tag",
+              "displayName": "Source Tag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Discovery Date",
+              "displayName": "Discovery Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Evaluated",
+                  "value": "Evaluated"
+                },
+                {
+                  "name": "Shortlisted",
+                  "value": "Shortlisted"
+                },
+                {
+                  "name": "Applied",
+                  "value": "Applied"
+                },
+                {
+                  "name": "Interview",
+                  "value": "Interview"
+                },
+                {
+                  "name": "Offer",
+                  "value": "Offer"
+                },
+                {
+                  "name": "Rejected",
+                  "value": "Rejected"
+                },
+                {
+                  "name": "Archived",
+                  "value": "Archived"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Fit Score",
+              "displayName": "Fit Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Fit Tier",
+              "displayName": "Fit Tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "Low",
+                  "value": "Low"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Match Reasoning",
+              "displayName": "Match Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Matched Skills",
+              "displayName": "Matched Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Missing Skills",
+              "displayName": "Missing Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CV Tailoring Notes",
+              "displayName": "CV Tailoring Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Salary Info",
+              "displayName": "Salary Info",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "AI Evaluation Cost",
+              "displayName": "AI Evaluation Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Applied Date",
+              "displayName": "Applied Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Response Date",
+              "displayName": "Response Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Outcome Notes",
+              "displayName": "Outcome Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tailored CV Text",
+              "displayName": "Tailored CV Text",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CV Tailoring Cost",
+              "displayName": "CV Tailoring Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Tailored CV",
+              "displayName": "Tailored CV",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "c586b7a9-cc82-44cc-b960-8cbed788007d",
+      "name": "Update Pipeline Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        4832,
+        64
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "id": "09bcf944-1897-48f0-8c03-e67a8bc4d3c8",
+      "name": "Wait 2s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        5104,
+        64
+      ],
+      "webhookId": "a21fa2fa-e243-4d22-b353-36878db9585d"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://content.airtable.com/v0/appE808oZ5gTSQzUY/{{ $('Parse Tailored CV').item.json.recordId }}/fldGRlQQUy9RLvbKB/uploadAttachment",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contentType\": \"application/vnd.openxmlformats-officedocument.wordprocessingml.document\",\n  \"file\": \"{{ $('Render DOCX').item.json.docx_base64 }}\",\n  \"filename\": \"{{ $('Render DOCX').item.json.filename }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4576,
+        64
+      ],
+      "id": "17db6d45-27c8-4ca0-8303-1ccb3b931df0",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "bHbDyibFzOPyv8jj",
+          "name": "Header Auth account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get High Fit Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get High Fit Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get High Fit Jobs": {
+      "main": [
+        [
+          {
+            "node": "Get Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Profile": {
+      "main": [
+        [
+          {
+            "node": "Build Tailoring Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Tailoring Prompt": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Jobs": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Tailor CV (GPT-5 mini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tailor CV (GPT-5 mini)": {
+      "main": [
+        [
+          {
+            "node": "Parse Tailored CV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Tailored CV": {
+      "main": [
+        [
+          {
+            "node": "Render DOCX",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render DOCX": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Pipeline Record": {
+      "main": [
+        [
+          {
+            "node": "Wait 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2s": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Update Pipeline Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "dd7fdcd3-8bbc-4d66-ab77-0611c06dc300",
+  "meta": {
+    "instanceId": "d7e19fca9705d4d0c36e6fe71822071e2ec1e1c76f266658ed6763dfc41db437"
+  },
+  "id": "tIAQYpmCnXUhT1dg",
+  "tags": []
+}

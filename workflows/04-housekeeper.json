@@ -1,0 +1,1350 @@
+{
+  "name": "JobSignal - Workflow 4 - Housekeeper",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "429e8c78-b129-4271-a0bb-30066a81438b",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1568,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks"
+            }
+          ]
+        }
+      },
+      "id": "e2d9b5b0-cd60-4368-8c34-f31dce74a4a6",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1552,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl4hqn6sfFVbLuzd",
+          "mode": "list",
+          "cachedResultName": "Profile",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tbl4hqn6sfFVbLuzd"
+        },
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "id": "002a6225-7c99-45b1-9159-48b986741645",
+      "name": "Get Profile",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1248,
+        208
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "filterByFormula": "=AND(Status = 'Evaluated', {Fit Tier} = 'Low', DATEADD(TODAY(), -7, 'days') > {Discovery Date})",
+        "options": {}
+      },
+      "id": "13d68f10-b9e6-4def-9fca-ec81d5be8bc6",
+      "name": "Get Stale Low Fit",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -992,
+        208
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "filterByFormula": "=AND(Status = 'Applied', DATEADD(TODAY(), -30, 'days') > {Applied Date}, {Response Date} = BLANK())",
+        "options": {}
+      },
+      "id": "562beb5e-7e0b-4ce7-ab75-195b9e5a2896",
+      "name": "Get Stale Applications",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -752,
+        208
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "filterByFormula": "=AND(Status = 'New', DATEADD(TODAY(), -3, 'days') > {Discovery Date})",
+        "options": {}
+      },
+      "id": "176d4785-577d-48e7-b8d0-b21f6ee7696f",
+      "name": "Get Stuck New Jobs",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -528,
+        208
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process Housekeeping — builds update batches and summary email\n\nconst profile = $('Get Profile').first().json.fields || $('Get Profile').first().json;\nconst notificationEmail = profile['Notification Email'] || '';\n\nconst staleLowFit = $('Get Stale Low Fit').all().filter(item => item.json.id);\nconst staleApps = $('Get Stale Applications').all().filter(item => item.json.id);\nconst stuckNew = $('Get Stuck New Jobs').all().filter(item => item.json.id);\n\nconst staleLowFitCount = staleLowFit.length;\nconst staleAppsCount = staleApps.length;\nconst stuckNewCount = stuckNew.length;\n\n// Build arrays of record IDs for batch updates\nconst archiveIds = staleLowFit.map(item => item.json.id);\nconst autoCloseIds = staleApps.map(item => item.json.id);\n\nconst now = new Date();\nconst dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });\n\n// Stuck jobs detail for the alert\nlet stuckJobsList = '';\nif (stuckNewCount > 0) {\n  for (const job of stuckNew.slice(0, 10)) {\n    const f = job.json.fields || job.json;\n    const title = f['Job Title'] || 'Untitled';\n    const company = f['Company'] || 'Unknown';\n    const discoveryDate = f['Discovery Date'] || '';\n    stuckJobsList += `<tr><td style=\"padding: 4px 0; font-size: 13px; color: #1a1a1a; font-family: Arial, sans-serif;\">${title} at ${company}</td><td style=\"padding: 4px 0; font-size: 13px; color: #888888; text-align: right; font-family: Arial, sans-serif;\">${discoveryDate}</td></tr>`;\n  }\n}\n\nconst subject = `JobSignal Housekeeping | ${staleLowFitCount} archived · ${staleAppsCount} auto-closed · ${stuckNewCount} stuck`;\n\nconst htmlBody = `<!DOCTYPE html>\n<html>\n<head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"></head>\n<body style=\"margin: 0; padding: 0; background-color: #f5f5f0; font-family: Arial, Helvetica, sans-serif;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color: #f5f5f0; padding: 20px 0;\">\n    <tr>\n      <td align=\"center\">\n        <table width=\"560\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color: #ffffff; border-radius: 8px; border: 1px solid #e0e0e0;\">\n          <tr>\n            <td style=\"padding: 24px 24px 16px; text-align: center; border-bottom: 1px solid #eeeeee;\">\n              <div style=\"font-size: 11px; letter-spacing: 1.5px; color: #999999; text-transform: uppercase; margin-bottom: 4px;\">WEEKLY HOUSEKEEPING</div>\n              <div style=\"font-size: 20px; font-weight: bold; color: #1a1a1a;\">JobSignal</div>\n              <div style=\"font-size: 13px; color: #888888; margin-top: 4px;\">${dateStr}</div>\n            </td>\n          </tr>\n          <tr>\n            <td style=\"padding: 20px 24px;\">\n              <div style=\"font-size: 12px; font-weight: bold; color: #999999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;\">Actions taken</div>\n              <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-family: Arial, sans-serif; font-size: 13px;\">\n                <tr>\n                  <td style=\"padding: 8px 0; color: #666666;\">Low Fit jobs archived (older than 7 days)</td>\n                  <td style=\"padding: 8px 0; text-align: right; font-weight: bold; color: #1a1a1a;\">${staleLowFitCount}</td>\n                </tr>\n                <tr>\n                  <td style=\"padding: 8px 0; color: #666666;\">Stale applications auto-closed (no response in 30 days)</td>\n                  <td style=\"padding: 8px 0; text-align: right; font-weight: bold; color: #1a1a1a;\">${staleAppsCount}</td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n          ${stuckNewCount > 0 ? `<tr>\n            <td style=\"padding: 0 24px 20px;\">\n              <div style=\"font-size: 12px; font-weight: bold; color: #cc6600; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #eeeeee; padding-top: 16px; margin-bottom: 8px;\">Warning: ${stuckNewCount} jobs stuck at status = new</div>\n              <div style=\"font-size: 13px; color: #888888; margin-bottom: 8px; font-family: Arial, sans-serif;\">These jobs have been unevaluated for 3+ days. Check if Workflow 2 (Evaluator) is running.</div>\n              <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n                ${stuckJobsList}\n              </table>\n            </td>\n          </tr>` : `<tr>\n            <td style=\"padding: 0 24px 20px;\">\n              <div style=\"font-size: 13px; color: #2e7d32; border-top: 1px solid #eeeeee; padding-top: 16px; font-family: Arial, sans-serif;\">No stuck jobs. All workflows running normally.</div>\n            </td>\n          </tr>`}\n          <tr>\n            <td style=\"padding: 16px 24px; text-align: center; border-top: 1px solid #eeeeee;\">\n              <div style=\"font-size: 12px; color: #999999;\"><a href=\"https://airtable.com/appE808oZ5gTSQzUY\" style=\"color: #1976d2; text-decoration: underline;\">Open Airtable to review your pipeline →</a></div>\n              <div style=\"font-size: 11px; color: #bbbbbb; margin-top: 6px;\">JobSignal Engine · Running on n8n</div>\n            </td>\n          </tr>\n        </table>\n      </td>\n    </tr>\n  </table>\n</body>\n</html>`;\n\nreturn [{\n  json: {\n    subject,\n    htmlBody,\n    notificationEmail,\n    archiveIds,\n    autoCloseIds,\n    staleLowFitCount,\n    staleAppsCount,\n    stuckNewCount\n  }\n}];"
+      },
+      "id": "4d3d6fea-7ad7-43ab-b096-092aca2c9560",
+      "name": "Build Housekeeping Plan",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition_archive",
+              "leftValue": "={{ $json.staleLowFitCount }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "84b343af-a996-4bb2-9b24-4c5c7bae3f05",
+      "name": "Has Low Fit to Archive?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -64,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Batch archive Low Fit records\n// Outputs individual items for Airtable Update node\nconst archiveIds = $input.first().json.archiveIds;\nreturn archiveIds.map(id => ({\n  json: {\n    id,\n    fields: {\n      Status: 'Archived'\n    }\n  }\n}));"
+      },
+      "id": "4941be1f-9fe6-4938-b277-d103e693a078",
+      "name": "Prepare Archive Updates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Archived",
+            "id": "={{ $json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Job ID",
+              "displayName": "Job ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Apply Link",
+              "displayName": "Apply Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Job Description",
+              "displayName": "Job Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "LinkedIn",
+                  "value": "LinkedIn"
+                },
+                {
+                  "name": "Indeed",
+                  "value": "Indeed"
+                },
+                {
+                  "name": "Glassdoor",
+                  "value": "Glassdoor"
+                },
+                {
+                  "name": "Google Jobs",
+                  "value": "Google Jobs"
+                },
+                {
+                  "name": "ZipRecruiter",
+                  "value": "ZipRecruiter"
+                },
+                {
+                  "name": "Greenhouse",
+                  "value": "Greenhouse"
+                },
+                {
+                  "name": "Ashby",
+                  "value": "Ashby"
+                },
+                {
+                  "name": "Lever",
+                  "value": "Lever"
+                },
+                {
+                  "name": "Manual",
+                  "value": "Manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source Query",
+              "displayName": "Source Query",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source Tag",
+              "displayName": "Source Tag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Discovery Date",
+              "displayName": "Discovery Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Evaluated",
+                  "value": "Evaluated"
+                },
+                {
+                  "name": "Shortlisted",
+                  "value": "Shortlisted"
+                },
+                {
+                  "name": "Applied",
+                  "value": "Applied"
+                },
+                {
+                  "name": "Interview",
+                  "value": "Interview"
+                },
+                {
+                  "name": "Offer",
+                  "value": "Offer"
+                },
+                {
+                  "name": "Rejected",
+                  "value": "Rejected"
+                },
+                {
+                  "name": "Archived",
+                  "value": "Archived"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fit Score",
+              "displayName": "Fit Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Fit Tier",
+              "displayName": "Fit Tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "Low",
+                  "value": "Low"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Match Reasoning",
+              "displayName": "Match Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Matched Skills",
+              "displayName": "Matched Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Missing Skills",
+              "displayName": "Missing Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CV Tailoring Notes",
+              "displayName": "CV Tailoring Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Salary Info",
+              "displayName": "Salary Info",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "AI Evaluation Cost",
+              "displayName": "AI Evaluation Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Applied Date",
+              "displayName": "Applied Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Response Date",
+              "displayName": "Response Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Outcome Notes",
+              "displayName": "Outcome Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tailored CV Text",
+              "displayName": "Tailored CV Text",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CV Tailoring Cost",
+              "displayName": "CV Tailoring Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tailored CV",
+              "displayName": "Tailored CV",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "c365dc77-9abb-4d0c-a13a-decea6ca6a3d",
+      "name": "Archive Low Fit",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        -16
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition_autoclose",
+              "leftValue": "={{ $json.staleAppsCount }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0bfe27c3-7576-4c8a-83d5-d2f4765d5c86",
+      "name": "Has Stale Apps to Close?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -64,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Batch auto-close stale applications\nconst autoCloseIds = $input.first().json.autoCloseIds;\nreturn autoCloseIds.map(id => ({\n  json: {\n    id,\n    fields: {\n      Status: 'Rejected',\n      'Outcome Notes': 'No response after 30 days (auto-closed by Housekeeper)'\n    }\n  }\n}));"
+      },
+      "id": "406a4653-a8a1-4ef0-aa16-79bcaf9bbc3f",
+      "name": "Prepare Auto-Close Updates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Outcome Notes": "={{ $json.fields['Outcome Notes'] }}",
+            "Status": "Rejected",
+            "id": "={{ $json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Job ID",
+              "displayName": "Job ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Apply Link",
+              "displayName": "Apply Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Job Description",
+              "displayName": "Job Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "LinkedIn",
+                  "value": "LinkedIn"
+                },
+                {
+                  "name": "Indeed",
+                  "value": "Indeed"
+                },
+                {
+                  "name": "Glassdoor",
+                  "value": "Glassdoor"
+                },
+                {
+                  "name": "Google Jobs",
+                  "value": "Google Jobs"
+                },
+                {
+                  "name": "ZipRecruiter",
+                  "value": "ZipRecruiter"
+                },
+                {
+                  "name": "Greenhouse",
+                  "value": "Greenhouse"
+                },
+                {
+                  "name": "Ashby",
+                  "value": "Ashby"
+                },
+                {
+                  "name": "Lever",
+                  "value": "Lever"
+                },
+                {
+                  "name": "Manual",
+                  "value": "Manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source Query",
+              "displayName": "Source Query",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source Tag",
+              "displayName": "Source Tag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Discovery Date",
+              "displayName": "Discovery Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Evaluated",
+                  "value": "Evaluated"
+                },
+                {
+                  "name": "Shortlisted",
+                  "value": "Shortlisted"
+                },
+                {
+                  "name": "Applied",
+                  "value": "Applied"
+                },
+                {
+                  "name": "Interview",
+                  "value": "Interview"
+                },
+                {
+                  "name": "Offer",
+                  "value": "Offer"
+                },
+                {
+                  "name": "Rejected",
+                  "value": "Rejected"
+                },
+                {
+                  "name": "Archived",
+                  "value": "Archived"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fit Score",
+              "displayName": "Fit Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Fit Tier",
+              "displayName": "Fit Tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "Low",
+                  "value": "Low"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Match Reasoning",
+              "displayName": "Match Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Matched Skills",
+              "displayName": "Matched Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Missing Skills",
+              "displayName": "Missing Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CV Tailoring Notes",
+              "displayName": "CV Tailoring Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Salary Info",
+              "displayName": "Salary Info",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "AI Evaluation Cost",
+              "displayName": "AI Evaluation Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Applied Date",
+              "displayName": "Applied Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Response Date",
+              "displayName": "Response Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Outcome Notes",
+              "displayName": "Outcome Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Tailored CV Text",
+              "displayName": "Tailored CV Text",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CV Tailoring Cost",
+              "displayName": "CV Tailoring Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tailored CV",
+              "displayName": "Tailored CV",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "c2ef1484-b8be-4aa1-aaf0-17bfd7577d16",
+      "name": "Auto-Close Stale Apps",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        192
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6e1982bb-ccfb-477f-98fe-26ca566b4714",
+              "leftValue": "={{ $json.stuckNewCount }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -48,
+        448
+      ],
+      "id": "7b6a12e6-a9b6-46c5-b5dd-02065d31d6f1",
+      "name": "Has Stuck Jobs?"
+    },
+    {
+      "parameters": {
+        "from": "rizwan@velocyt.ca",
+        "to": "={{ $json.notificationEmail }}",
+        "subject": "={{ $json.subject }}",
+        "html": "={{ $json.htmlBody }}",
+        "additionalOptions": {}
+      },
+      "type": "n8n-nodes-resend.resend",
+      "typeVersion": 1,
+      "position": [
+        448,
+        432
+      ],
+      "id": "78fc0551-bb7b-443f-bf8f-e38766a66ae3",
+      "name": "Send a new email",
+      "webhookId": "786a1600-22a2-4ca6-81aa-2d8266341c25",
+      "credentials": {
+        "resendApi": {
+          "id": "7AfjbpJFdPBTrKVV",
+          "name": "Resend account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Profile": {
+      "main": [
+        [
+          {
+            "node": "Get Stale Low Fit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Stale Low Fit": {
+      "main": [
+        [
+          {
+            "node": "Get Stale Applications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Stale Applications": {
+      "main": [
+        [
+          {
+            "node": "Get Stuck New Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Stuck New Jobs": {
+      "main": [
+        [
+          {
+            "node": "Build Housekeeping Plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Housekeeping Plan": {
+      "main": [
+        [
+          {
+            "node": "Has Low Fit to Archive?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Has Stale Apps to Close?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Has Stuck Jobs?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Low Fit to Archive?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Archive Updates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Archive Updates": {
+      "main": [
+        [
+          {
+            "node": "Archive Low Fit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Stale Apps to Close?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Auto-Close Updates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Auto-Close Updates": {
+      "main": [
+        [
+          {
+            "node": "Auto-Close Stale Apps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Stuck Jobs?": {
+      "main": [
+        [
+          {
+            "node": "Send a new email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "2b40c0d0-f828-482c-bb4b-3a5d1ee165b5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d7e19fca9705d4d0c36e6fe71822071e2ec1e1c76f266658ed6763dfc41db437"
+  },
+  "id": "gXUUWdoaqNkCWLlg",
+  "tags": []
+}

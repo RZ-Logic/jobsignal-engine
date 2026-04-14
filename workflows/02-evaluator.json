@@ -1,0 +1,1376 @@
+{
+  "name": "JobSignal - Workflow 2 - Evaluator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "6c8f3c28-b492-4d67-ba80-c25f36e04679",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl4hqn6sfFVbLuzd",
+          "mode": "list",
+          "cachedResultName": "Profile",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tbl4hqn6sfFVbLuzd"
+        },
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "id": "05e8c436-fad4-49cd-a27b-f8611a1805cd",
+      "name": "Get Profile",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "filterByFormula": "={Status}='New'",
+        "returnAll": false,
+        "limit": 5,
+        "options": {}
+      },
+      "id": "c5b5b40a-2633-416e-a5be-2434e9fc50c8",
+      "name": "Get New Jobs",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the dynamic scoring prompt from Profile data\n// Profile is fetched once and reused for every job in this batch\n\nconst profileItems = $('Get Profile').all();\nif (!profileItems || profileItems.length === 0) {\n  throw new Error('Profile table is empty. Add your profile row before running.');\n}\nconst profile = profileItems[0].json;\n\n// Helper to safely format multi-select arrays\nconst fmt = (val) => {\n  if (!val) return '(none specified)';\n  if (Array.isArray(val)) return val.length ? val.join(', ') : '(none specified)';\n  return String(val);\n};\n\nconst systemPrompt = `You are an expert technical recruiter evaluating job-candidate fit.\n\nCANDIDATE PROFILE:\n- Name: ${profile['Full Name'] || 'Candidate'}\n- Summary: ${profile['Professional Summary'] || ''}\n- Core Skills: ${fmt(profile['Core Skills'])}\n- Secondary Skills: ${fmt(profile['Secondary Skills'])}\n- Target Roles: ${fmt(profile['Target Roles'])}\n- Target Industries: ${fmt(profile['Target Industries'])}\n- Seniority: ${profile['Seniority Level'] || 'Senior'}+\n- Location Preference: ${profile['Location Preference'] || 'Any'}\n- Target Geography: ${fmt(profile['Target Geography'])}\n- Hard Exclusions: ${fmt(profile['Negative Filters'])}\n\nSCORING RUBRIC (score 1-10, one decimal place):\nWeighted criteria:\n- Skill Match (40%): How many core skills does the JD require? Partial credit for secondary skills. A perfect skill match means the candidate's core skills directly map to the JD's primary requirements.\n- Role Alignment (25%): Does the title and function genuinely match target roles? A 'GTM Engineer' role for a GTM Engineer candidate is perfect alignment. A 'Data Engineer' role is misalignment even if some tools overlap.\n- Seniority Fit (15%): Is the level appropriate? Score down if the JD demands significantly higher OR lower seniority than the candidate's level.\n- Industry/Domain (10%): Does the company/industry align with the candidate's target industries?\n- Location Match (10%): Does the role meet the candidate's location preference and geography?\n\nTIER ASSIGNMENT:\n- Score >= 8.0 -> tier = \"High\"\n- Score 5.0 to 7.9 -> tier = \"Medium\"\n- Score < 5.0 -> tier = \"Low\"\n\nAUTOMATIC DISQUALIFIERS (cap score at 3.0):\n- The JD primarily requires skills that appear in the Hard Exclusions list\n- The role is clearly a different function or discipline than the target roles (e.g., HVAC building automation when the candidate targets workflow/AI automation; cloud infrastructure engineering when the candidate is a workflow architect)\n- The role is junior/intern level when the candidate is Senior+\n\n${profile['Scoring Rubric Override'] || ''}\n\nOUTPUT FORMAT:\nReturn ONLY valid JSON, no markdown fences, no preamble, no commentary. The JSON must match this exact schema:\n{\n  \"score\": <number 1-10, one decimal>,\n  \"tier\": \"<High|Medium|Low>\",\n  \"reasoning\": \"<2-3 sentences explaining the score, citing specific JD requirements and how they map (or don't) to the candidate>\",\n  \"matched_skills\": \"<comma-separated list of candidate skills that match JD requirements>\",\n  \"missing_skills\": \"<comma-separated list of skills the JD wants that the candidate lacks>\",\n  \"cv_tailoring_notes\": \"<2-3 sentences: what to emphasize in the CV, how to adjust the professional summary, which projects to highlight>\",\n  \"extracted_salary\": \"<salary range as string if mentioned in JD, else empty string>\"\n  \n  CRITICAL: Do NOT use <thought> tags or any thinking/reasoning before your response. Do NOT include any text before or after the JSON object. Your entire response must be a single JSON object starting with { as the very first character.\n}`;\n\n\n// Pass the prompt forward along with each job\nconst jobs = $('Get New Jobs').all();\nreturn jobs.map(job => ({\n  json: {\n    ...job.json,\n    _systemPrompt: systemPrompt,\n    _airtableRecordId: job.json.id || job.json.recordId\n  }\n}));"
+      },
+      "id": "6ca3c206-ee49-41c0-8c66-310b1e018b6c",
+      "name": "Build Scoring Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "5a4ae35d-a0f4-4e97-971c-a12657c524a8",
+      "name": "Loop Over Jobs",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json._systemPrompt }}",
+              "role": "system"
+            },
+            {
+              "content": "=Evaluate this job:\n\nJOB TITLE: {{ $json['Job Title'] }}\nCOMPANY: {{ $json.Company }}\nLOCATION: {{ $json.Location }}\nJOB DESCRIPTION:{{ $json['Job Description'] }}\n"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "723f99eb-fb4e-4fd4-aa51-a7a86a77eeb2",
+      "name": "Score Job (GPT-5 mini)",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.6,
+      "position": [
+        1024,
+        -192
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "openAiApi": {
+          "id": "kFMK08Shp2G4NxIN",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the AI response and prepare the Airtable update payload\n\nconst aiResponse = $input.first().json;\n\nlet parsed;\ntry {\n  // With simplified output OFF, content is at choices[0].message.content\n  let rawContent;\n  if (aiResponse.choices && aiResponse.choices[0] && aiResponse.choices[0].message) {\n    rawContent = aiResponse.choices[0].message.content;\n  } else if (aiResponse.message && aiResponse.message.content) {\n    rawContent = aiResponse.message.content;\n  } else if (aiResponse.content) {\n    rawContent = aiResponse.content;\n  } else if (aiResponse.text) {\n    rawContent = aiResponse.text;\n  } else {\n    rawContent = aiResponse;\n  }\n\n  if (typeof rawContent === 'string') {\n  // Strip any preamble before the first { (handles thinking tags, markdown fences, etc.)\n  const jsonStart = rawContent.indexOf('{');\n  if (jsonStart === -1) throw new Error('No JSON object found in AI response');\n  rawContent = rawContent.substring(jsonStart);\n  // Also strip any trailing content after the last }\n  const jsonEnd = rawContent.lastIndexOf('}');\n  if (jsonEnd === -1) throw new Error('No closing brace found in AI response');\n  rawContent = rawContent.substring(0, jsonEnd + 1);\n}\nparsed = typeof rawContent === 'string' ? JSON.parse(rawContent) : rawContent;\n} catch (err) {\n  throw new Error('Failed to parse AI response as JSON: ' + err.message + ' | Raw: ' + JSON.stringify(aiResponse).slice(0, 500));\n}\n\n// Validate required fields\nif (typeof parsed.score !== 'number') {\n  throw new Error('AI response missing valid score field. Got: ' + JSON.stringify(parsed).slice(0, 300));\n}\n\n// Get the original job record from the Loop node\nconst loopItem = $('Loop Over Jobs').item.json;\nconst recordId = loopItem._airtableRecordId || loopItem.id;\n\nif (!recordId) {\n  throw new Error('Could not find Airtable record ID on the looped job item.');\n}\n\n// Cost calculation from actual token usage (when available)\n// GPT-5 mini pricing: $0.25/1M input, $2.00/1M output\nconst INPUT_COST_PER_TOKEN = 0.25 / 1_000_000;\nconst OUTPUT_COST_PER_TOKEN = 2.00 / 1_000_000;\n\nlet estimatedCost = 0; // $0 for local models or missing usage data\n\nconst usage = aiResponse.usage \n  || (aiResponse.message && aiResponse.message.usage)\n  || null;\n\nif (usage && usage.prompt_tokens && usage.completion_tokens) {\n  estimatedCost = (usage.prompt_tokens * INPUT_COST_PER_TOKEN) \n    + (usage.completion_tokens * OUTPUT_COST_PER_TOKEN);\n  estimatedCost = Math.round(estimatedCost * 1_000_000) / 1_000_000;\n}\n\nreturn [{\n  json: {\n    recordId: recordId,\n    fields: {\n      'Status': 'Evaluated',\n      'Fit Score': parsed.score,\n      'Fit Tier': parsed.tier,\n      'Match Reasoning': parsed.reasoning || '',\n      'Matched Skills': parsed.matched_skills || '',\n      'Missing Skills': parsed.missing_skills || '',\n      'CV Tailoring Notes': parsed.cv_tailoring_notes || '',\n      'Salary Info': parsed.extracted_salary || '',\n      'AI Evaluation Cost': estimatedCost\n    }\n  }\n}];"
+      },
+      "id": "3ce53f36-e912-424a-b42d-928cf760015d",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fit Score": "={{ $json.fields['Fit Score'] }}",
+            "AI Evaluation Cost": "={{ $json.fields['AI Evaluation Cost'] }}",
+            "id": "={{ $json.recordId }}",
+            "Salary Info": "={{ $json.fields['Salary Info'] }}",
+            "CV Tailoring Notes": "={{ $json.fields['CV Tailoring Notes'] }}",
+            "Missing Skills": "={{ $json.fields['Missing Skills'] }}",
+            "Matched Skills": "={{ $json.fields['Matched Skills'] }}",
+            "Match Reasoning": "={{ $json.fields['Match Reasoning'] }}",
+            "Status": "Evaluated",
+            "Fit Tier": "={{ $json.fields['Fit Tier'] }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Job ID",
+              "displayName": "Job ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Apply Link",
+              "displayName": "Apply Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Job Description",
+              "displayName": "Job Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "LinkedIn",
+                  "value": "LinkedIn"
+                },
+                {
+                  "name": "Indeed",
+                  "value": "Indeed"
+                },
+                {
+                  "name": "Glassdoor",
+                  "value": "Glassdoor"
+                },
+                {
+                  "name": "Google Jobs",
+                  "value": "Google Jobs"
+                },
+                {
+                  "name": "ZipRecruiter",
+                  "value": "ZipRecruiter"
+                },
+                {
+                  "name": "Greenhouse",
+                  "value": "Greenhouse"
+                },
+                {
+                  "name": "Ashby",
+                  "value": "Ashby"
+                },
+                {
+                  "name": "Lever",
+                  "value": "Lever"
+                },
+                {
+                  "name": "Manual",
+                  "value": "Manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source Query",
+              "displayName": "Source Query",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source Tag",
+              "displayName": "Source Tag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Discovery Date",
+              "displayName": "Discovery Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Evaluated",
+                  "value": "Evaluated"
+                },
+                {
+                  "name": "Shortlisted",
+                  "value": "Shortlisted"
+                },
+                {
+                  "name": "Applied",
+                  "value": "Applied"
+                },
+                {
+                  "name": "Interview",
+                  "value": "Interview"
+                },
+                {
+                  "name": "Offer",
+                  "value": "Offer"
+                },
+                {
+                  "name": "Rejected",
+                  "value": "Rejected"
+                },
+                {
+                  "name": "Archived",
+                  "value": "Archived"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fit Score",
+              "displayName": "Fit Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fit Tier",
+              "displayName": "Fit Tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "Low",
+                  "value": "Low"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Match Reasoning",
+              "displayName": "Match Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Matched Skills",
+              "displayName": "Matched Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Missing Skills",
+              "displayName": "Missing Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CV Tailoring Notes",
+              "displayName": "CV Tailoring Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Salary Info",
+              "displayName": "Salary Info",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Evaluation Cost",
+              "displayName": "AI Evaluation Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Applied Date",
+              "displayName": "Applied Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Response Date",
+              "displayName": "Response Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Outcome Notes",
+              "displayName": "Outcome Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c7f35d29-4abf-4809-8eac-3f7c8fc5e869",
+      "name": "Update Job Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1520,
+        64
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "rizwan@velocyt.ca",
+        "to": "={{ $('Get Profile').item.json['Notification Email'] }}",
+        "subject": "=High Fit: {{ $('Get New Jobs').item.json['Job Title'] }} at {{ $('Get New Jobs').item.json.Company }} (Score: {{ $('Parse AI Response').item.json.fields['Fit Score'] }}",
+        "html": "=<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-family: Arial, sans-serif; background-color: #f5f5f0;\">\n  <tr>\n    <td align=\"center\" style=\"padding: 20px 0;\">\n      <table width=\"500\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color: #ffffff; border-radius: 8px;\">\n        <tr>\n          <td style=\"padding: 20px;\">\n            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color: #e8f5e9; border-radius: 6px;\">\n              <tr>\n                <td style=\"padding: 16px;\">\n                  <div style=\"font-size: 12px; color: #2e7d32; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;\">High Fit Match</div>\n                  <div style=\"font-size: 20px; font-weight: bold; color: #1a1a1a; margin-top: 4px;\">{{ $('Get New Jobs').item.json['Job Title'] }}</div>\n                  <div style=\"font-size: 14px; color: #666666; margin-top: 2px;\">{{ $('Get New Jobs').item.json.Company }} · {{ $('Get New Jobs').item.json.Location }}</div>\n                </td>\n              </tr>\n            </table>\n            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-top: 16px; font-size: 13px;\">\n              <tr>\n                <td style=\"padding: 6px 0; color: #888888;\">Score</td>\n                <td style=\"padding: 6px 0; text-align: right; font-weight: bold; color: #2e7d32;\">{{ $('Parse AI Response').item.json.fields['Fit Score'] }}</td>\n              </tr>\n              <tr>\n                <td style=\"padding: 6px 0; color: #888888;\">Matched skills</td>\n                <td style=\"padding: 6px 0; text-align: right; color: #1a1a1a;\">{{ $('Parse AI Response').item.json.fields['Matched Skills'] }}</td>\n              </tr>\n            </table>\n            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-top: 16px;\">\n              <tr>\n                <td align=\"center\">\n                  <a href=\"{{ $('Get New Jobs').item.json['Apply Link'] }}\" style=\"display: inline-block; background-color: #1976d2; color: #ffffff; padding: 10px 24px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold;\">Apply Now →</a>\n                </td>\n              </tr>\n            </table>\n            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-top: 16px;\">\n              <tr>\n                <td align=\"center\" style=\"font-size: 11px; color: #bbbbbb;\">JobSignal Engine · Real-time alert</td>\n              </tr>\n            </table>\n          </td>\n        </tr>\n      </table>\n    </td>\n  </tr>\n</table>",
+        "additionalOptions": {}
+      },
+      "type": "n8n-nodes-resend.resend",
+      "typeVersion": 1,
+      "position": [
+        1968,
+        -64
+      ],
+      "id": "e90ce08e-c057-4892-8372-bac439826d59",
+      "name": "Send a new email",
+      "webhookId": "c613e722-6f0e-4383-9855-3ef937219502",
+      "credentials": {
+        "resendApi": {
+          "id": "7AfjbpJFdPBTrKVV",
+          "name": "Resend account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e768e808-3671-43a9-801d-ca9df2ea2c11",
+              "leftValue": "={{ $json.fields['Fit Tier'] }}",
+              "rightValue": "High",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1744,
+        64
+      ],
+      "id": "da0e5a9d-607e-4e7c-982e-1059e26ed049",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build interview prep prompt using profile + JD + evaluation results\nconst profile = $('Get Profile').item.json;\nconst job = $('Loop Over Jobs').item.json;\nconst evaluation = $('Parse AI Response').item.json;\nconst cvMarkdown = profile['CV Markdown'] || '';\n\nconst fmt = (val) => {\n  if (!val) return '(none specified)';\n  if (Array.isArray(val)) return val.length ? val.join(', ') : '(none specified)';\n  return String(val);\n};\n\nconst jsonExample = JSON.stringify({\n  \"interview_questions\": [\n    {\n      \"question\": \"<likely interview question>\",\n      \"why_asked\": \"<1 sentence: why the interviewer would ask this based on the JD>\",\n      \"suggested_answer_angle\": \"<1-2 sentences: how the candidate should approach this given their profile>\"\n    }\n  ],\n  \"star_responses\": [\n    {\n      \"theme\": \"<skill or competency being tested>\",\n      \"situation\": \"<brief suggested situation from the candidate's background>\",\n      \"task\": \"<what the candidate needed to accomplish>\",\n      \"action\": \"<specific actions to highlight>\",\n      \"result\": \"<quantifiable outcome to emphasize>\"\n    }\n  ]\n}, null, 2);\n\nconst interviewPrompt = `You are a senior interview coach preparing a candidate for a specific job interview.\n\nCANDIDATE PROFILE:\n- Name: ${profile['Full Name'] || 'Candidate'}\n- Professional Summary: ${profile['Professional Summary'] || ''}\n- Core Skills: ${fmt(profile['Core Skills'])}\n- Secondary Skills: ${fmt(profile['Secondary Skills'])}\n- Seniority: ${profile['Seniority Level'] || 'Senior'}\n\nCANDIDATE CV:\n${cvMarkdown}\n\nEVALUATION RESULTS:\n- Fit Score: ${evaluation.fields['Fit Score']}\n- Matched Skills: ${evaluation.fields['Matched Skills']}\n- Missing Skills: ${evaluation.fields['Missing Skills']}\n- Match Reasoning: ${evaluation.fields['Match Reasoning']}\n\nTARGET JOB:\n- Title: ${job['Job Title']}\n- Company: ${job.Company}\n- Description: ${job['Job Description']}\n\nTASK:\nGenerate interview preparation material for this specific role. Return ONLY valid JSON, no markdown fences, no preamble. The JSON must match this exact schema:\n\n${jsonExample}\n\nRULES:\n- Generate 15 interview questions. Include a mix: 5-6 behavioral, 4-5 technical/situational, 2-3 role-specific, and 2-3 culture/leadership questions.\n- Focus questions on the MATCHED SKILLS (these will definitely come up) and MISSING SKILLS (the interviewer will probe gaps).\n- Generate 5 STAR responses. Map them to the candidate's actual background — do NOT invent experience.\n- For STAR responses, use SPECIFIC projects, roles, and achievements from the candidate's CV — do NOT use generic descriptions. Reference actual company names, tools used, and quantifiable outcomes from the CV.\n- Keep everything concise and actionable.\n\nCRITICAL: Do NOT use <thought> tags or any thinking/reasoning before your response. Do NOT include any text before or after the JSON object. Your entire response must be a single JSON object starting with { as the very first character.`;\n\nreturn [{\n  json: {\n    _interviewPrompt: interviewPrompt,\n    _recordId: evaluation.recordId\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2176,
+        -64
+      ],
+      "id": "9420b9f9-f329-4e5d-830b-e4ab012868f5",
+      "name": "Build Interview Prep Prompt"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert interview coach. Return only valid JSON.",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json._interviewPrompt }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "a60ade23-600c-4dee-97dc-4b3ce840163c",
+      "name": "Generate Interview Prep (GPT-5 mini)",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.6,
+      "position": [
+        2368,
+        -192
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "openAiApi": {
+          "id": "kFMK08Shp2G4NxIN",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the interview prep AI response and update the Pipeline record\n\nconst aiResponse = $input.first().json;\nconst recordId = $('Build Interview Prep Prompt').item.json._recordId;\n\n// Cost calculation — GPT-5 mini pricing: $0.25/1M input, $2.00/1M output\nconst INPUT_COST_PER_TOKEN = 0.25 / 1_000_000;\nconst OUTPUT_COST_PER_TOKEN = 2.00 / 1_000_000;\n\nlet interviewPrepCost = 0;\n\nconst usage = aiResponse.usage\n  || (aiResponse.message && aiResponse.message.usage)\n  || null;\n\nif (usage && usage.prompt_tokens && usage.completion_tokens) {\n  interviewPrepCost = (usage.prompt_tokens * INPUT_COST_PER_TOKEN)\n    + (usage.completion_tokens * OUTPUT_COST_PER_TOKEN);\n  interviewPrepCost = Math.round(interviewPrepCost * 1_000_000) / 1_000_000;\n}\n\nlet parsed;\ntry {\n  let rawContent;\n  if (aiResponse.choices && aiResponse.choices[0] && aiResponse.choices[0].message) {\n    rawContent = aiResponse.choices[0].message.content;\n  } else if (aiResponse.message && aiResponse.message.content) {\n    rawContent = aiResponse.message.content;\n  } else if (aiResponse.content) {\n    rawContent = aiResponse.content;\n  } else if (aiResponse.text) {\n    rawContent = aiResponse.text;\n  } else {\n    rawContent = aiResponse;\n  }\n  if (typeof rawContent === 'string') {\n  const jsonStart = rawContent.indexOf('{');\n  if (jsonStart === -1) throw new Error('No JSON object found in AI response');\n  rawContent = rawContent.substring(jsonStart);\n  const jsonEnd = rawContent.lastIndexOf('}');\n  if (jsonEnd === -1) throw new Error('No closing brace found in AI response');\n  rawContent = rawContent.substring(0, jsonEnd + 1);\n}\nparsed = typeof rawContent === 'string' ? JSON.parse(rawContent) : rawContent;\n} catch (err) {\n  return [{\n    json: {\n      recordId: recordId,\n      interviewQuestions: '(Interview prep generation failed: ' + err.message + ')',\n      starResponses: '',\n      interviewPrepCost: interviewPrepCost\n    }\n  }];\n}\n\n// Format interview questions as readable text\nlet questionsText = '';\nif (parsed.interview_questions && Array.isArray(parsed.interview_questions)) {\n  questionsText = parsed.interview_questions.map((q, i) => {\n    return `${i + 1}. ${q.question}\\n   Why asked: ${q.why_asked}\\n   Approach: ${q.suggested_answer_angle}`;\n  }).join('\\n\\n');\n}\n\n// Format STAR responses as readable text\nlet starText = '';\nif (parsed.star_responses && Array.isArray(parsed.star_responses)) {\n  starText = parsed.star_responses.map((s, i) => {\n    return `${i + 1}. Theme: ${s.theme}\\n   Situation: ${s.situation}\\n   Task: ${s.task}\\n   Action: ${s.action}\\n   Result: ${s.result}`;\n  }).join('\\n\\n');\n}\n\nreturn [{\n  json: {\n    recordId: recordId,\n    interviewQuestions: questionsText,\n    starResponses: starText,\n    interviewPrepCost: interviewPrepCost\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2720,
+        -192
+      ],
+      "id": "0729e0bb-00b5-44c6-9caa-96fbaa10cc6c",
+      "name": "Parse & Save Interview Prep"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.recordId }}",
+            "Interview Questions": "={{ $json.interviewQuestions }}",
+            "STAR Responses": "={{ $json.starResponses }}",
+            "Interview Prep Cost": "={{ $json.interviewPrepCost }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Job ID",
+              "displayName": "Job ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Apply Link",
+              "displayName": "Apply Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Job Description",
+              "displayName": "Job Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "LinkedIn",
+                  "value": "LinkedIn"
+                },
+                {
+                  "name": "Indeed",
+                  "value": "Indeed"
+                },
+                {
+                  "name": "Glassdoor",
+                  "value": "Glassdoor"
+                },
+                {
+                  "name": "Google Jobs",
+                  "value": "Google Jobs"
+                },
+                {
+                  "name": "ZipRecruiter",
+                  "value": "ZipRecruiter"
+                },
+                {
+                  "name": "Greenhouse",
+                  "value": "Greenhouse"
+                },
+                {
+                  "name": "Ashby",
+                  "value": "Ashby"
+                },
+                {
+                  "name": "Lever",
+                  "value": "Lever"
+                },
+                {
+                  "name": "Manual",
+                  "value": "Manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source Query",
+              "displayName": "Source Query",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source Tag",
+              "displayName": "Source Tag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Discovery Date",
+              "displayName": "Discovery Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Evaluated",
+                  "value": "Evaluated"
+                },
+                {
+                  "name": "Shortlisted",
+                  "value": "Shortlisted"
+                },
+                {
+                  "name": "Applied",
+                  "value": "Applied"
+                },
+                {
+                  "name": "Interview",
+                  "value": "Interview"
+                },
+                {
+                  "name": "Offer",
+                  "value": "Offer"
+                },
+                {
+                  "name": "Rejected",
+                  "value": "Rejected"
+                },
+                {
+                  "name": "Archived",
+                  "value": "Archived"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Fit Score",
+              "displayName": "Fit Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Fit Tier",
+              "displayName": "Fit Tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "Low",
+                  "value": "Low"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Match Reasoning",
+              "displayName": "Match Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Matched Skills",
+              "displayName": "Matched Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Missing Skills",
+              "displayName": "Missing Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CV Tailoring Notes",
+              "displayName": "CV Tailoring Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Salary Info",
+              "displayName": "Salary Info",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "AI Evaluation Cost",
+              "displayName": "AI Evaluation Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Applied Date",
+              "displayName": "Applied Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Response Date",
+              "displayName": "Response Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Outcome Notes",
+              "displayName": "Outcome Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tailored CV Text",
+              "displayName": "Tailored CV Text",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CV Tailoring Cost",
+              "displayName": "CV Tailoring Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tailored CV",
+              "displayName": "Tailored CV",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Interview Questions",
+              "displayName": "Interview Questions",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "STAR Responses",
+              "displayName": "STAR Responses",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Interview Prep Cost",
+              "displayName": "Interview Prep Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2912,
+        -192
+      ],
+      "id": "0d9cc6cc-c815-413b-9f1e-345b074b5bc7",
+      "name": "Update Interview Prep",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        240
+      ],
+      "id": "84a214d8-dfea-4a68-8f07-c522fef8f044",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "id": "1e9d2506-0c9e-46d7-95b3-d14cddde1d84",
+      "name": "Wait 2s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3104,
+        64
+      ],
+      "webhookId": "9ab1ba5c-586a-4f4e-8cc8-587f30a84db8"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Profile": {
+      "main": [
+        [
+          {
+            "node": "Get New Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get New Jobs": {
+      "main": [
+        [
+          {
+            "node": "Build Scoring Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Scoring Prompt": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Jobs": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Score Job (GPT-5 mini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score Job (GPT-5 mini)": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Update Job Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Job Record": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a new email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a new email": {
+      "main": [
+        [
+          {
+            "node": "Build Interview Prep Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Interview Prep Prompt": {
+      "main": [
+        [
+          {
+            "node": "Generate Interview Prep (GPT-5 mini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Interview Prep (GPT-5 mini)": {
+      "main": [
+        [
+          {
+            "node": "Parse & Save Interview Prep",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Save Interview Prep": {
+      "main": [
+        [
+          {
+            "node": "Update Interview Prep",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Interview Prep": {
+      "main": [
+        [
+          {
+            "node": "Wait 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2s": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ff43f3fd-1d65-4dec-a57e-c9a9d44e4315",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d7e19fca9705d4d0c36e6fe71822071e2ec1e1c76f266658ed6763dfc41db437"
+  },
+  "id": "rz7G4ZY8xTB6ulQ4",
+  "tags": []
+}

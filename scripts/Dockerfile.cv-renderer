@@ -1,0 +1,12 @@
+FROM python:3.12-alpine
+
+RUN pip install --no-cache-dir python-docx
+
+WORKDIR /opt/jobsignal
+
+COPY scripts/render_cv.py /opt/jobsignal/render_cv.py
+COPY scripts/cv_service.py /opt/jobsignal/cv_service.py
+
+EXPOSE 3456
+
+CMD ["python3", "/opt/jobsignal/cv_service.py"]

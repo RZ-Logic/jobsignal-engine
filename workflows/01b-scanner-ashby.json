@@ -1,0 +1,806 @@
+{
+  "name": "JobSignal - Workflow 1b - Scanner (Ashby)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1dd2d99e-56c8-455d-82fa-c6f17790e36b",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -384
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl5yytlFEcocSK2v",
+          "mode": "list",
+          "cachedResultName": "Tracked Companies",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tbl5yytlFEcocSK2v"
+        },
+        "filterByFormula": "=AND({Enabled}=TRUE(),{Scan Method}='Ashby API')",
+        "options": {}
+      },
+      "id": "bee2ad9a-2242-4eae-8570-1f99fe458598",
+      "name": "Get Tracked Companies",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        656,
+        -384
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ff089f7c-ee1d-4865-aa1f-c043afad58c2",
+      "name": "Loop Companies",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        880,
+        -384
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Ashby API response, filter by title keywords AND geography\n// Ashby returns descriptions inline as descriptionPlain — no second fetch needed\n\nconst apiResponse = $input.first().json;\n\nconst prep = $('Prepare Company Data').item.json;\nconst companyName = prep.companyName;\nconst keywordsRaw = prep.titleKeywords || '';\n\nif (!companyName) {\n  throw new Error('Company Name missing from Prepare Company Data node.');\n}\n\n// Dynamic geography from Profile table\nconst profileData = $('Get Profile').first().json;\nconst geoField = profileData.fields \n  ? profileData.fields['Target Geography'] \n  : profileData['Target Geography'];\nconst userGeographies = Array.isArray(geoField) ? geoField : ['Remote Global'];\n\nconst GEO_CONFIG = {\n  'Canada': {\n    countries: ['canada'],\n    substrings: ['canada', 'toronto', 'vancouver', 'montreal', 'ottawa', 'calgary', 'mississauga', 'edmonton', 'waterloo', 'quebec']\n  },\n  'USA': {\n    countries: ['united states', 'usa', 'us'],\n    substrings: ['united states', 'new york', 'san francisco', 'los angeles', 'seattle', 'chicago', 'austin', 'boston', 'denver']\n  },\n  'Remote Global': {\n    countries: [],\n    substrings: ['remote worldwide', 'worldwide', 'global remote', 'anywhere in the world', 'fully remote global'],\n    exactLocations: ['remote', 'worldwide', 'global', 'anywhere', 'remote - global', 'remote global']\n  },\n  'Remote North America': {\n    countries: [],\n    substrings: ['remote north america', 'remote - north america', 'remote na', 'remote us/canada', 'remote us and canada', 'remote (na)', 'remote - us', 'remote - canada'],\n    exactLocations: ['remote - north america', 'remote north america']\n  },\n  'Remote Canada': {\n    countries: [],\n    substrings: ['remote canada', 'remote - canada'],\n    exactLocations: ['remote - canada', 'remote canada']\n  },\n  'UK': {\n    countries: ['united kingdom', 'uk', 'britain'],\n    substrings: ['united kingdom', 'london', 'manchester', 'edinburgh']\n  },\n  'Germany': {\n    countries: ['germany'],\n    substrings: ['germany', 'berlin', 'munich', 'hamburg', 'frankfurt']\n  },\n  'Netherlands': {\n    countries: ['netherlands'],\n    substrings: ['netherlands', 'amsterdam', 'rotterdam', 'the hague']\n  },\n  'France': {\n    countries: ['france'],\n    substrings: ['france', 'paris', 'lyon', 'marseille']\n  },\n  'Ireland': {\n    countries: ['ireland'],\n    substrings: ['ireland', 'dublin', 'cork']\n  },\n  'Australia': {\n    countries: ['australia'],\n    substrings: ['australia', 'sydney', 'melbourne', 'brisbane']\n  },\n  'Singapore': {\n    countries: ['singapore'],\n    substrings: ['singapore']\n  },\n  'India': {\n    countries: ['india'],\n    substrings: ['india', 'bangalore', 'bengaluru', 'mumbai', 'hyderabad', 'pune', 'delhi', 'gurgaon', 'noida']\n  },\n  'EMEA': {\n    countries: ['germany', 'france', 'spain', 'italy', 'netherlands', 'ireland', 'poland'],\n    substrings: ['emea', 'europe', 'berlin', 'paris', 'amsterdam', 'dublin', 'madrid']\n  },\n  'Remote Europe': {\n    countries: [],\n    substrings: ['remote europe', 'remote - europe', 'remote emea', 'remote - emea'],\n    exactLocations: ['remote - europe', 'remote europe']\n  },\n  'APAC': {\n    countries: ['australia', 'singapore', 'japan', 'south korea'],\n    substrings: ['apac', 'asia', 'singapore', 'tokyo', 'sydney']\n  },\n  'Remote APAC': {\n    countries: [],\n    substrings: ['remote apac', 'remote - apac', 'remote asia', 'remote - asia'],\n    exactLocations: ['remote - apac', 'remote apac']\n  },\n  'Remote LATAM': {\n    countries: [],\n    substrings: ['remote latam', 'remote - latam', 'remote latin america', 'remote - latin america'],\n    exactLocations: ['remote - latam', 'remote latam']\n  }\n};\n\n// Build active match sets from user's chosen geographies\nconst activeCountries = new Set();\nconst activeSubstrings = new Set();\nconst activeExactLocations = new Set();\nfor (const geo of userGeographies) {\n  const cfg = GEO_CONFIG[geo];\n  if (!cfg) continue;\n  (cfg.countries || []).forEach(c => activeCountries.add(c.toLowerCase()));\n  (cfg.substrings || []).forEach(s => activeSubstrings.add(s.toLowerCase()));\n  (cfg.exactLocations || []).forEach(e => activeExactLocations.add(e.toLowerCase()));\n}\n\nconst locationMatches = (locationString, addressCountry) => {\n  const loc = (locationString || '').toLowerCase().trim();\n  const country = (addressCountry || '').toLowerCase().trim();\n  \n  if (!loc && !country) return false;\n  \n  if (loc && activeExactLocations.has(loc)) return true;\n  if (country && activeCountries.has(country)) return true;\n  \n  for (const sub of activeSubstrings) {\n    if (loc.includes(sub)) return true;\n  }\n  \n  for (const c of activeCountries) {\n    if (loc === c || loc.startsWith(c + ',') || loc.endsWith(' ' + c) || loc.includes(', ' + c)) {\n      return true;\n    }\n  }\n  \n  return false;\n};\n\nconst matchesGeography = (job) => {\n  const primaryCountry = (job.address && job.address.postalAddress && job.address.postalAddress.addressCountry) || '';\n  if (locationMatches(job.location, primaryCountry)) return true;\n  \n  if (Array.isArray(job.secondaryLocations)) {\n    for (const secLoc of job.secondaryLocations) {\n      if (!secLoc) continue;\n      const secCountry = (secLoc.address && secLoc.address.postalAddress && secLoc.address.postalAddress.addressCountry) || '';\n      if (locationMatches(secLoc.location, secCountry)) return true;\n    }\n  }\n  \n  return false;\n};\n\nconst keywords = keywordsRaw\n  .split(',')\n  .map(k => k.trim().toLowerCase())\n  .filter(k => k.length > 0);\n\nconst jobs = (apiResponse && apiResponse.jobs) ? apiResponse.jobs : [];\n\nif (jobs.length === 0) {\n  return [{ json: { _empty: true, _company: companyName } }];\n}\n\nconst titleFiltered = jobs.filter(job => {\n  if (keywords.length === 0) return true;\n  const title = (job.title || '').toLowerCase();\n  return keywords.some(kw => title.includes(kw));\n});\n\nconst filtered = titleFiltered.filter(matchesGeography);\n\nif (filtered.length === 0) {\n  return [{ json: { _empty: true, _company: companyName } }];\n}\n\nconst fnv1aHash = (str) => {\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = Math.imul(hash, 0x01000193);\n  }\n  return (hash >>> 0).toString(16).padStart(8, '0');\n};\n\nconst items = filtered.map(job => {\n  const title = job.title || 'Untitled';\n  const location = job.location || 'Not specified';\n  const applyLink = job.applyUrl || job.jobUrl || '';\n  const description = job.descriptionPlain || job.descriptionHtml || '[Description not available]';\n  \n  const hashInput = `${title}|${companyName}|${applyLink}`;\n  const jobId = fnv1aHash(hashInput) + '-' + companyName.substring(0, 3).toLowerCase();\n  \n  return {\n    json: {\n      jobId: jobId,\n      jobTitle: title,\n      company: companyName,\n      location: location,\n      applyLink: applyLink,\n      jobDescription: description,\n      source: 'Ashby',\n      sourceQuery: companyName,\n      sourceTag: 'Tracked Company',\n      discoveryDate: new Date().toISOString().split('T')[0]\n    }\n  };\n});\n\nreturn items;"
+      },
+      "id": "bacd7aa1-0116-47c1-b924-6523bfc16d64",
+      "name": "Parse & Filter Jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        -384
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "id": "692c9d7c-ba49-4dd1-a950-581c24ddd318",
+      "name": "Wait 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1792,
+        -384
+      ],
+      "webhookId": "86349d03-c46d-4696-82ae-ea7e9585173c"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate results from all company loops into a single deduplicated list\n// This runs after Loop Companies completes all iterations\n\nconst allItems = $input.all();\n\n// Filter out summary-only items (those with _empty flag) and keep real job items\nconst realJobs = allItems.filter(item => !item.json._empty && item.json.jobId);\n\n// In-memory deduplication by jobId (in case same job appeared in multiple companies, unlikely but defensive)\nconst seen = new Set();\nconst unique = [];\nfor (const item of realJobs) {\n  if (!seen.has(item.json.jobId)) {\n    seen.add(item.json.jobId);\n    unique.push(item);\n  }\n}\n\nreturn unique;"
+      },
+      "id": "b2edde04-c827-4752-8924-396d96c6a5c9",
+      "name": "Aggregate All Jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1952,
+        -672
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "options": {
+          "fields": [
+            "Job ID"
+          ]
+        }
+      },
+      "id": "2dc1561e-7f30-41cc-9434-6626a0bb3b1f",
+      "name": "Get Existing Job IDs",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2192,
+        -368
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter aggregated jobs against existing Job IDs in Pipeline (deduplication)\n\nconst aggregatedJobs = $('Aggregate All Jobs').all();\nconst existingRecords = $('Get Existing Job IDs').all();\n\nconst existingIds = new Set();\nfor (const record of existingRecords) {\n  let jobId = null;\n  if (record.json.fields && record.json.fields['Job ID']) {\n    jobId = record.json.fields['Job ID'];\n  } else if (record.json['Job ID']) {\n    jobId = record.json['Job ID'];\n  }\n  if (jobId) existingIds.add(jobId);\n}\n\nconst netNew = aggregatedJobs.filter(item => !existingIds.has(item.json.jobId));\n\n// Safety brake: cap at 100 new records per run\nif (netNew.length > 100) {\n  throw new Error(`Safety brake: ${netNew.length} net-new jobs exceeds 100 limit. Review your Tracked Companies title keywords — they may be too broad. Increase the cap in this Code node if this is intentional.`);\n}\n\nif (netNew.length === 0) {\n  return [{ json: { _empty: true, _message: `${aggregatedJobs.length} jobs found, all already in Pipeline` } }];\n}\n\nreturn netNew;"
+      },
+      "id": "d8feb5c8-1cf2-4a60-b037-b14d1d1bd547",
+      "name": "Deduplicate vs Pipeline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2432,
+        -368
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Job ID": "={{ $json.jobId }}",
+            "Job Title": "={{ $json.jobTitle }}",
+            "Company": "={{ $json.company }}",
+            "Location": "={{ $json.location }}",
+            "Apply Link": "={{ $json.applyLink }}",
+            "Job Description": "={{ $json.jobDescription }}",
+            "Source": "={{ $json.source }}",
+            "Source Query": "={{ $json.sourceQuery }}",
+            "Source Tag": "={{ $json.sourceTag }}",
+            "Discovery Date": "={{ $json.discoveryDate }}",
+            "Status": "New"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Job ID",
+              "displayName": "Job ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Apply Link",
+              "displayName": "Apply Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Job Description",
+              "displayName": "Job Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "LinkedIn",
+                  "value": "LinkedIn"
+                },
+                {
+                  "name": "Indeed",
+                  "value": "Indeed"
+                },
+                {
+                  "name": "Glassdoor",
+                  "value": "Glassdoor"
+                },
+                {
+                  "name": "Google Jobs",
+                  "value": "Google Jobs"
+                },
+                {
+                  "name": "ZipRecruiter",
+                  "value": "ZipRecruiter"
+                },
+                {
+                  "name": "Greenhouse",
+                  "value": "Greenhouse"
+                },
+                {
+                  "name": "Ashby",
+                  "value": "Ashby"
+                },
+                {
+                  "name": "Lever",
+                  "value": "Lever"
+                },
+                {
+                  "name": "Manual",
+                  "value": "Manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source Query",
+              "displayName": "Source Query",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source Tag",
+              "displayName": "Source Tag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Discovery Date",
+              "displayName": "Discovery Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Evaluated",
+                  "value": "Evaluated"
+                },
+                {
+                  "name": "Shortlisted",
+                  "value": "Shortlisted"
+                },
+                {
+                  "name": "Applied",
+                  "value": "Applied"
+                },
+                {
+                  "name": "Interview",
+                  "value": "Interview"
+                },
+                {
+                  "name": "Offer",
+                  "value": "Offer"
+                },
+                {
+                  "name": "Rejected",
+                  "value": "Rejected"
+                },
+                {
+                  "name": "Archived",
+                  "value": "Archived"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fit Score",
+              "displayName": "Fit Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Fit Tier",
+              "displayName": "Fit Tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "Low",
+                  "value": "Low"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Match Reasoning",
+              "displayName": "Match Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Matched Skills",
+              "displayName": "Matched Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Missing Skills",
+              "displayName": "Missing Skills",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CV Tailoring Notes",
+              "displayName": "CV Tailoring Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Salary Info",
+              "displayName": "Salary Info",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "AI Evaluation Cost",
+              "displayName": "AI Evaluation Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Applied Date",
+              "displayName": "Applied Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Response Date",
+              "displayName": "Response Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Outcome Notes",
+              "displayName": "Outcome Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "2b04f775-3ab2-4f7c-bf74-103ef1659b02",
+      "name": "Create Pipeline Records",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2672,
+        -368
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd687e2f-f8d4-49f0-8bcf-3a06dd200c9b",
+              "name": "apiEndpoint",
+              "value": "={{ $('Get Tracked Companies').item.json.fields ? $('Get Tracked Companies').item.json.fields['API Endpoint'] : $('Get Tracked Companies').item.json['API Endpoint'] }}",
+              "type": "string"
+            },
+            {
+              "id": "ac290c14-c5d2-4acd-822c-c0efdaf76dd4",
+              "name": "companyName",
+              "value": "={{ $('Get Tracked Companies').item.json.fields ? $('Get Tracked Companies').item.json.fields['Company Name'] : $('Get Tracked Companies').item.json['Company Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "dd725699-ddc3-40db-baf4-6c2c8aec2d84",
+              "name": "titleKeywords",
+              "value": "={{ $('Get Tracked Companies').item.json.fields ? $('Get Tracked Companies').item.json.fields['Title Keywords'] : $('Get Tracked Companies').item.json['Title Keywords'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1104,
+        -384
+      ],
+      "id": "987921eb-1471-4830-a8a8-305c950ecefd",
+      "name": "Prepare Company Data"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Get Tracked Companies').item.json.fields ? $('Get Tracked Companies').item.json.fields['API Endpoint'] : $('Get Tracked Companies').item.json['API Endpoint'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1312,
+        -384
+      ],
+      "id": "f5ab8d5b-f267-4602-a5be-0cbf005e192e",
+      "name": "Fetch Ashby API",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8,
+              "triggerAtMinute": 5
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        -176
+      ],
+      "id": "0134e9f3-c221-46c4-8423-7b05258cd975",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl4hqn6sfFVbLuzd",
+          "mode": "list",
+          "cachedResultName": "Profile",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tbl4hqn6sfFVbLuzd"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        -384
+      ],
+      "id": "b5a0cb28-0c7b-4e87-afde-f299451cef31",
+      "name": "Get Profile",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Tracked Companies": {
+      "main": [
+        [
+          {
+            "node": "Loop Companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Companies": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Company Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Filter Jobs": {
+      "main": [
+        [
+          {
+            "node": "Wait 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop Companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Jobs": {
+      "main": [
+        [
+          {
+            "node": "Get Existing Job IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Existing Job IDs": {
+      "main": [
+        [
+          {
+            "node": "Deduplicate vs Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplicate vs Pipeline": {
+      "main": [
+        [
+          {
+            "node": "Create Pipeline Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Company Data": {
+      "main": [
+        [
+          {
+            "node": "Fetch Ashby API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Ashby API": {
+      "main": [
+        [
+          {
+            "node": "Parse & Filter Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Profile": {
+      "main": [
+        [
+          {
+            "node": "Get Tracked Companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ef7f4150-0e12-4ce9-885a-c7809abe5aef",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d7e19fca9705d4d0c36e6fe71822071e2ec1e1c76f266658ed6763dfc41db437"
+  },
+  "id": "IVR7plkU2slvMtR0",
+  "tags": []
+}

@@ -1,0 +1,359 @@
+{
+  "name": "JobSignal - Workflow 6 - Alerter",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "766795ef-eb04-4b9c-8103-eecb8008e1bb",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 18
+            }
+          ]
+        }
+      },
+      "id": "7c2b88c1-8e61-47b8-af5f-993bfd556a55",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl4hqn6sfFVbLuzd",
+          "mode": "list",
+          "cachedResultName": "Profile",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tbl4hqn6sfFVbLuzd"
+        },
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "id": "823e167d-8970-4aed-b46f-62b95d13cfa6",
+      "name": "Get Profile",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        288,
+        0
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "filterByFormula": "=IS_SAME({Discovery Date}, TODAY())",
+        "options": {}
+      },
+      "id": "f53268b8-c099-4a93-8c08-bde95f7c3050",
+      "name": "Get Today's New Jobs",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        528,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "filterByFormula": "=AND({Fit Tier} = 'High', OR(Status = 'Evaluated', Status = 'New'))",
+        "options": {}
+      },
+      "id": "5a0a7317-b769-467b-aa35-d33cb8926c89",
+      "name": "Get High Fit Awaiting Review",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        768,
+        0
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "filterByFormula": "=AND(Status = 'Applied', {Applied Date} >= DATEADD(TODAY(), -7, 'days'))",
+        "options": {}
+      },
+      "id": "bf79e5b9-d037-4acd-97ce-09e3b466da7d",
+      "name": "Get Applied This Week",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        0
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqvCvqMIczRGjLi",
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
+        },
+        "filterByFormula": "=Status = 'Interview'",
+        "options": {}
+      },
+      "id": "d3bb4ed2-c637-4fbb-9d41-66b4a162c2bf",
+      "name": "Get Interviews",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1248,
+        0
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Email — Code Node (Execute Once: ON)\n\nconst profile = $('Get Profile').first().json.fields || $('Get Profile').first().json;\nconst notificationEmail = profile['Notification Email'] || '';\n\nconst todaysJobs = $('Get Today\\'s New Jobs').all().filter(item => item.json.id);\nconst highFitJobs = $('Get High Fit Awaiting Review').all().filter(item => item.json.id);\nconst appliedThisWeek = $('Get Applied This Week').all().filter(item => item.json.id);\nconst interviews = $('Get Interviews').all().filter(item => item.json.id);\n\nconst totalNew = todaysJobs.length;\nconst highFitCount = highFitJobs.length;\nconst appliedCount = appliedThisWeek.length;\nconst interviewCount = interviews.length;\n\nconst now = new Date();\nconst dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });\nconst shortDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });\n\nlet highFitHTML = '';\nif (highFitJobs.length === 0) {\n  highFitHTML = '<tr><td style=\"padding: 12px 16px; font-size: 14px; color: #888888; font-family: Arial, sans-serif;\">No high-fit jobs awaiting review. Your pipeline is clear.</td></tr>';\n} else {\n  const jobsToShow = highFitJobs.slice(0, 10);\n  for (const job of jobsToShow) {\n    const f = job.json.fields || job.json;\n    const title = f['Job Title'] || 'Untitled';\n    const company = f['Company'] || 'Unknown';\n    const location = f['Location'] || '';\n    const score = f['Fit Score'] || '—';\n    const applyLink = f['Apply Link'] || '#';\n    \n    highFitHTML += `\n    <tr><td style=\"padding: 4px 16px;\">\n      <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border: 1px solid #d4e8f0; border-radius: 6px; margin-bottom: 4px;\">\n        <tr>\n          <td style=\"padding: 10px 12px; font-family: Arial, sans-serif;\">\n            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n              <tr>\n                <td style=\"font-size: 14px; font-weight: bold; color: #1a1a1a;\">${title}</td>\n                <td width=\"50\" align=\"right\">\n                  <span style=\"background-color: #e8f5e9; color: #2e7d32; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: bold;\">${score}</span>\n                </td>\n              </tr>\n            </table>\n            <div style=\"font-size: 13px; color: #666666; margin-top: 2px;\">${company} · ${location}</div>\n            <a href=\"${applyLink}\" style=\"font-size: 12px; color: #1976d2; text-decoration: underline; margin-top: 4px; display: inline-block;\">Apply →</a>\n          </td>\n        </tr>\n      </table>\n    </td></tr>`;\n  }\n  if (highFitJobs.length > 10) {\n    highFitHTML += `<tr><td style=\"padding: 4px 16px; font-size: 12px; color: #888888; font-family: Arial, sans-serif;\">+ ${highFitJobs.length - 10} more high-fit jobs in your pipeline</td></tr>`;\n  }\n}\n\nconst subject = `JobSignal Daily | ${highFitCount} High Fit · ${totalNew} New Jobs · ${shortDate}`;\n\nconst htmlBody = `<!DOCTYPE html>\n<html>\n<head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"></head>\n<body style=\"margin: 0; padding: 0; background-color: #f5f5f0; font-family: Arial, Helvetica, sans-serif;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color: #f5f5f0; padding: 20px 0;\">\n    <tr>\n      <td align=\"center\">\n        <table width=\"560\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color: #ffffff; border-radius: 8px; border: 1px solid #e0e0e0;\">\n          <tr>\n            <td style=\"padding: 24px 24px 16px; text-align: center; border-bottom: 1px solid #eeeeee;\">\n              <div style=\"font-size: 11px; letter-spacing: 1.5px; color: #999999; text-transform: uppercase; margin-bottom: 4px;\">DAILY DIGEST</div>\n              <div style=\"font-size: 20px; font-weight: bold; color: #1a1a1a;\">JobSignal</div>\n              <div style=\"font-size: 13px; color: #888888; margin-top: 4px;\">${dateStr}</div>\n            </td>\n          </tr>\n          <tr>\n            <td style=\"padding: 20px 16px 12px;\">\n              <div style=\"font-size: 12px; font-weight: bold; color: #999999; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 8px 8px;\">Today's scan</div>\n              <table width=\"100%\" cellpadding=\"0\" cellspacing=\"8\">\n                <tr>\n                  <td width=\"25%\" align=\"center\" style=\"background-color: #f7f7f4; border-radius: 6px; padding: 12px 4px;\">\n                    <div style=\"font-size: 24px; font-weight: bold; color: #1a1a1a;\">${totalNew}</div>\n                    <div style=\"font-size: 11px; color: #888888;\">new jobs</div>\n                  </td>\n                  <td width=\"25%\" align=\"center\" style=\"background-color: #e8f5e9; border-radius: 6px; padding: 12px 4px;\">\n                    <div style=\"font-size: 24px; font-weight: bold; color: #2e7d32;\">${highFitCount}</div>\n                    <div style=\"font-size: 11px; color: #2e7d32;\">high fit</div>\n                  </td>\n                  <td width=\"25%\" align=\"center\" style=\"background-color: #f7f7f4; border-radius: 6px; padding: 12px 4px;\">\n                    <div style=\"font-size: 24px; font-weight: bold; color: #1a1a1a;\">${appliedCount}</div>\n                    <div style=\"font-size: 11px; color: #888888;\">applied</div>\n                  </td>\n                  <td width=\"25%\" align=\"center\" style=\"background-color: #f7f7f4; border-radius: 6px; padding: 12px 4px;\">\n                    <div style=\"font-size: 24px; font-weight: bold; color: #1a1a1a;\">${interviewCount}</div>\n                    <div style=\"font-size: 11px; color: #888888;\">interviews</div>\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n          <tr>\n            <td style=\"padding: 8px 0 12px;\">\n              <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n                <tr>\n                  <td style=\"padding: 0 24px 8px;\">\n                    <div style=\"font-size: 12px; font-weight: bold; color: #999999; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #eeeeee; padding-top: 16px;\">High fit jobs — awaiting review</div>\n                  </td>\n                </tr>\n                ${highFitHTML}\n              </table>\n            </td>\n          </tr>\n          <tr>\n            <td style=\"padding: 0 24px 20px;\">\n              <div style=\"font-size: 12px; font-weight: bold; color: #999999; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #eeeeee; padding-top: 16px; margin-bottom: 8px;\">Pipeline status</div>\n              <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-family: Arial, sans-serif; font-size: 13px;\">\n                <tr>\n                  <td style=\"padding: 5px 0; color: #888888;\">Awaiting review (high fit)</td>\n                  <td style=\"padding: 5px 0; text-align: right; font-weight: bold; color: #1a1a1a;\">${highFitCount}</td>\n                </tr>\n                <tr>\n                  <td style=\"padding: 5px 0; color: #888888;\">Applied this week</td>\n                  <td style=\"padding: 5px 0; text-align: right; font-weight: bold; color: #1a1a1a;\">${appliedCount}</td>\n                </tr>\n                <tr>\n                  <td style=\"padding: 5px 0; color: #888888;\">Active interviews</td>\n                  <td style=\"padding: 5px 0; text-align: right; font-weight: bold; color: #1a1a1a;\">${interviewCount}</td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n          <tr>\n            <td style=\"padding: 16px 24px; text-align: center; border-top: 1px solid #eeeeee;\">\n              <div style=\"font-size: 12px; color: #999999;\"><a href=\"https://airtable.com/appE808oZ5gTSQzUY\" style=\"color: #1976d2; text-decoration: underline;\">Open Airtable to review your pipeline →</a></div>\n              <div style=\"font-size: 11px; color: #bbbbbb; margin-top: 6px;\">JobSignal Engine · Running on n8n</div>\n            </td>\n          </tr>\n        </table>\n      </td>\n    </tr>\n  </table>\n</body>\n</html>`;\n\nreturn [{\n  json: {\n    subject,\n    htmlBody,\n    notificationEmail,\n    stats: { totalNew, highFitCount, appliedCount, interviewCount }\n  }\n}];"
+      },
+      "id": "31c7a140-e1e1-4951-913a-ac8e958060a6",
+      "name": "Build Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "from": "rizwan@velocyt.ca",
+        "to": "={{ $json.notificationEmail }}",
+        "subject": "={{ $json.subject }}",
+        "html": "={{ $json.htmlBody }}",
+        "additionalOptions": {}
+      },
+      "type": "n8n-nodes-resend.resend",
+      "typeVersion": 1,
+      "position": [
+        1696,
+        0
+      ],
+      "id": "21526572-1c4e-4fcc-8044-7f9f4627b446",
+      "name": "Send Digest (Resend)",
+      "webhookId": "f9bc8a38-403a-4ec8-9f33-13ef502fd68f",
+      "credentials": {
+        "resendApi": {
+          "id": "7AfjbpJFdPBTrKVV",
+          "name": "Resend account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Profile": {
+      "main": [
+        [
+          {
+            "node": "Get Today's New Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Today's New Jobs": {
+      "main": [
+        [
+          {
+            "node": "Get High Fit Awaiting Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get High Fit Awaiting Review": {
+      "main": [
+        [
+          {
+            "node": "Get Applied This Week",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Applied This Week": {
+      "main": [
+        [
+          {
+            "node": "Get Interviews",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Interviews": {
+      "main": [
+        [
+          {
+            "node": "Build Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email": {
+      "main": [
+        [
+          {
+            "node": "Send Digest (Resend)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "344dfdde-a904-407c-9f17-dbad42c9687d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d7e19fca9705d4d0c36e6fe71822071e2ec1e1c76f266658ed6763dfc41db437"
+  },
+  "id": "PbQI5sLRXCfSuXHE",
+  "tags": []
+}

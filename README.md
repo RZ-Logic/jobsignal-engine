@@ -376,7 +376,7 @@ Download [LM Studio](https://lmstudio.ai), click Discover, download a model (Qwe
 | **Total per High Fit job** | **~$0.02** | **$0** |
 | **Total per Low/Medium job** | **~$0.003** | **$0** |
 
-At 30 new jobs/day with 3 High Fits, that's ~$0.15/day or **~$3-5/month** on GPT-5 mini. Or $0 on Gemma 4.
+At 30 new jobs/day with 3 High Fits, that's approximately $0.15/day or $3-5/month on GPT-5 mini. Or $0 on Gemma 4.
 
 ---
 

@@ -550,7 +550,7 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        3040,
+        3248,
         -400
       ],
       "retryOnFail": true,
@@ -681,6 +681,40 @@
           "name": "Airtable Personal Access Token account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2c6d688e-20a7-4f55-981d-f55436d0e1bd",
+              "leftValue": "={{ $json.jobId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3008,
+        -400
+      ],
+      "id": "b89cef63-a72a-47e7-b639-94bfc089bb31",
+      "name": "If"
     }
   ],
   "pinData": {},
@@ -784,7 +818,7 @@
       "main": [
         [
           {
-            "node": "Create Pipeline Records",
+            "node": "If",
             "type": "main",
             "index": 0
           }
@@ -845,6 +879,17 @@
           }
         ]
       ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create Pipeline Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -853,7 +898,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "8d360568-51de-4f98-bdfa-29f504d59b89",
+  "versionId": "5e1e3eea-47b8-4924-a7a5-55bc42bb143a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d7e19fca9705d4d0c36e6fe71822071e2ec1e1c76f266658ed6763dfc41db437"

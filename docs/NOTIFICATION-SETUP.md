@@ -2,6 +2,8 @@
 
 JobSignal sends two types of notifications: **High Fit alerts** (instant, from Workflow 2 when a job scores 8+) and **daily digests** (evening summary from Workflow 6). Both require an email sending method configured in n8n.
 
+**JobSignal ships with Resend nodes by default.** Resend is an HTTP-based email API that works universally — including on DigitalOcean, which blocks SMTP ports. If you prefer Gmail (common for n8n Desktop and most non-DigitalOcean hosts), you can swap the Resend nodes for Send Email nodes following the guide below.
+
 ---
 
 ## Choose Your Method

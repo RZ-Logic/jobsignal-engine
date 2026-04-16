@@ -1,6 +1,6 @@
 # Cost Guide
 
-JobSignal is designed to run for $0–12/month depending on your deployment mode and AI provider. This guide breaks down every cost component so you know exactly what you're paying for.
+JobSignal is designed to run for $0–17/month depending on your deployment mode and AI provider. Most users will be in the $0–12 range. This guide breaks down every cost component so you know exactly what you're paying for.
 
 ---
 
@@ -9,12 +9,14 @@ JobSignal is designed to run for $0–12/month depending on your deployment mode
 | Deployment | AI Tier | Monthly Cost |
 |------------|---------|:---:|
 | Fully Local (n8n Desktop + LM Studio) | Free (local) | **$0** |
-| Self-Hosted (DigitalOcean 1GB + Google AI Studio) | Free (cloud) | **$6** |
-| Self-Hosted (DigitalOcean 2GB + Google AI Studio) | Free (cloud) | **$12** |
-| Self-Hosted (DigitalOcean 1GB + GPT-5 mini) | Budget | **$9–11** |
-| Self-Hosted (DigitalOcean 2GB + GPT-5 mini) | Budget | **$15–17** |
-| n8n Cloud Starter + Google AI Studio | Free (cloud) | **$24** |
-| n8n Cloud Starter + GPT-5 mini | Budget | **$27–29** |
+| Self-Hosted (VPS 2GB + Google AI Studio) | Free (cloud) | **$12** |
+| Self-Hosted (VPS 1GB + Google AI Studio) | Free (cloud) | **$6** (limited — see notes) |
+| Self-Hosted (VPS 2GB + GPT-5 mini) | Budget | **~$15–17** |
+| Self-Hosted (VPS 1GB + GPT-5 mini) | Budget | **~$9–11** (limited) |
+| n8n Cloud Starter + Google AI Studio | Free (cloud) | **€20** (~$22) |
+| n8n Cloud Starter + GPT-5 mini | Budget | **~€23–25** (~$26–28) |
+
+*n8n Cloud pricing as of April 2026 — verify at [n8n.io/pricing](https://n8n.io/pricing).*
 
 ---
 
@@ -22,12 +24,14 @@ JobSignal is designed to run for $0–12/month depending on your deployment mode
 
 ### VPS (Self-Hosted Only)
 
-| Provider | Plan | RAM | Monthly | Notes |
+| Provider | Plan | RAM | Monthly (USD) | Notes |
 |----------|------|-----|:-------:|-------|
 | DigitalOcean | Basic Droplet | 1GB | $6 | Core stack only (n8n + Postgres + Caddy). Cannot run both sidecars simultaneously — OOM risk. |
-| DigitalOcean | Basic Droplet | 2GB | $12 | Full stack with both sidecars running 24/7. Recommended for production. |
-| Hetzner | CX22 | 2GB | ~$4 | Cheapest option. EU-based data centers. |
+| DigitalOcean | Basic Droplet | 2GB | $12 | **Recommended.** Full stack with both sidecars running 24/7. |
+| Hetzner | CX22 | 2GB | ~$4 (€3.50) | Cheapest option. EU-based data centers. |
 | Vultr | Cloud Compute | 1GB | $6 | Similar to DigitalOcean. |
+
+*Pricing as of April 2026 — verify current rates with your chosen provider.*
 
 **What's running on the VPS:**
 
@@ -44,14 +48,19 @@ On a 1GB droplet, the total can exceed available memory when both sidecars are p
 
 ### n8n Cloud
 
-| Plan | Monthly | Executions/month | Active workflows |
-|------|:-------:|:----------------:|:----------------:|
-| Starter | $24 | 2,500 | 5 |
-| Pro | $60 | 10,000 | Unlimited |
+| Plan | Monthly | Executions/month | Concurrent executions | Shared projects |
+|------|:-------:|:----------------:|:---------------------:|:---------------:|
+| Starter | €20 | 2,500 | 5 | 1 |
+| Pro | €50 | Custom | 20 | 3 |
+| Business | €667 | 40,000 | — | 6 |
 
-JobSignal uses 7 active workflows, so the Starter plan's 5-workflow limit means you'll need to prioritize (keep the 3 scanners, evaluator, and alerter active; run tailor and housekeeper manually). The Pro plan removes this constraint.
+*Pricing as of April 2026. All plans include unlimited users and unlimited workflows. Verify current pricing at [n8n.io/pricing](https://n8n.io/pricing).*
 
-Execution count: each workflow run = 1 execution. 7 daily workflows + 1 weekly = ~50 executions/week = ~200/month. Well within Starter limits.
+JobSignal uses 7 workflows on n8n Cloud (no JobSpy sidecar support). With staggered schedules (8:00, 8:05, 8:10 AM, 9:00 AM, 9:30 AM, 6:00 PM, Sunday midnight), you'll rarely have more than 1–2 workflows executing concurrently, well under the 5 concurrent execution limit.
+
+Execution count: each workflow run = 1 execution. Typical usage is ~200–300 executions/month, well within Starter limits.
+
+**Cloud limitations:** No JobSpy (LinkedIn/Indeed scanning), no DOCX CV generation (the cv-renderer sidecar can't run on n8n Cloud). You still get all scanner workflows for Greenhouse/Ashby/Lever, AI scoring, interview prep, email alerts, and daily digests.
 
 ### n8n Desktop (Fully Local)
 
@@ -188,13 +197,13 @@ Everything running, highest quality AI output, DOCX CVs, LinkedIn/Indeed scannin
 
 | Component | Cost |
 |-----------|:----:|
-| n8n Cloud Starter | $24 |
+| n8n Cloud Starter | €20 (~$22) |
 | Google AI Studio (Gemma 4) | $0 |
 | Airtable free tier | $0 |
 | Gmail (SMTP) | $0 |
-| **Total** | **$24/month** |
+| **Total** | **€20/month (~$22 USD)** |
 
-Fastest setup, no Docker, no VPS. Trade-offs: no JobSpy (LinkedIn/Indeed), no DOCX CVs, limited to 5 active workflows on Starter plan.
+Fastest setup, no Docker, no VPS. Trade-offs: no JobSpy (LinkedIn/Indeed), no DOCX CVs. All other features work normally.
 
 ---
 
@@ -206,8 +215,8 @@ Fastest setup, no Docker, no VPS. Trade-offs: no JobSpy (LinkedIn/Indeed), no DO
 | LazyApply | $99 | Included | Auto-apply, gets accounts flagged |
 | Teal | $9–44 | Included | Manual discovery, resume builder |
 | career-ops | Free | ~$20 (Claude Pro) | CLI-based, requires active terminal |
-| **JobSignal (free tier)** | **$0–6** | **$0** | **Autonomous pipeline, scoring, CV tailoring, interview prep** |
-| **JobSignal (budget tier)** | **$6–17** | **$3–5** | **Same + highest quality AI output** |
+| **JobSignal (free tier)** | **$0–12** | **$0** | **Autonomous pipeline, scoring, CV tailoring, interview prep** |
+| **JobSignal (budget tier)** | **$12–17** | **$3–5** | **Same + highest quality AI output** |
 
 ---
 

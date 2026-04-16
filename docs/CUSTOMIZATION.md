@@ -266,7 +266,7 @@ If you're tracking many companies or using broad keywords:
 - **Tighten Title Keywords** — add keywords to high-volume companies to reduce noise
 - **Safety brakes are already set** — scanners cap at 100–200 jobs per run to prevent runaway processing
 - **Monitor Airtable record count** — the free tier caps at 1,000 records. The Housekeeper archives stale Low Fit jobs weekly, but at high volume you may need to archive more aggressively or upgrade Airtable
-- **AI rate limits** — Google AI Studio's 15 RPM handles ~450 evaluations per hour. If you're consistently hitting 50+ new jobs daily, consider OpenAI (no practical rate limit at this volume)
+- **AI rate limits** — Google AI Studio's 15 RPM handles the typical JobSignal workload easily (~500 new jobs/day in normal use). If you're consistently hitting 50+ new jobs daily with many High Fits triggering interview prep and CV tailoring, consider OpenAI (no practical rate limit at this volume)
 
 ### Minimal volume (testing / occasional use)
 

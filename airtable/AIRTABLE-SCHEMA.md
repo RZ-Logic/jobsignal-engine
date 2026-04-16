@@ -4,7 +4,7 @@
 
 To save time, import the CSV templates from the `airtable/templates/` folder instead of creating tables manually:
 
-1. In Airtable, create a new base called **"JobSignal Engine"** in its own workspace (important — Airtable free tier caps at 1,000 records per workspace)
+1. In Airtable, create a new base called **"JobSignal Engine"** in its own workspace (important — Airtable free tier caps at 1,000 records per base)
 2. For each CSV file, click **"+" → "Import data" → "CSV file"**
 3. Import in this order:
    - `Profile-Grid_view.csv`
@@ -42,7 +42,7 @@ After importing, update these field types and fill in your row:
 | Seniority Level | Single select | ✅ | Options: Mid, Senior, Staff, Lead, Head |
 | Location Preference | Single select | | Options: Remote Only, Hybrid, On-site, Any |
 | Target Geography | Multiple select | ✅ | Options: Canada, USA, Remote Global, Remote North America, EMEA, UK, APAC |
-| AI Model | Text | | Override model name (e.g., "gpt-5-mini", "gemma-4-26b-a4b-it") |
+| AI Model | Text | | Informational reference — the actual model is configured in each n8n OpenAI node. Use this field as a reminder of which model you're running. |
 | Scoring Rubric Override | Long text | | Custom instructions appended to the AI scoring prompt |
 | CV Markdown | Long text | ✅ | Your full CV in markdown — critical for STAR responses and CV tailoring |
 | Notification Email | Text | ✅ | Where alerts and digests go |

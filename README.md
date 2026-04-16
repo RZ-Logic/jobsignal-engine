@@ -31,7 +31,7 @@
 
 ---
 
-> **Companies use AI to filter you out. JobSignal gives you AI to filter them first — autonomously, 24/7, for $0–5/month.**
+> **Companies use AI to filter you out. JobSignal gives you AI to filter them first — autonomously, 24/7, for $0–12/month.**
 
 ---
 
@@ -60,7 +60,7 @@ I'm an automation architect. I run self-hosted n8n in production for real client
 
 When I started my own job search, I looked at what was out there. career-ops is the most interesting open-source tool in the space, but it runs interactively from your terminal and — in my experience — burns through a $20/month Claude Pro plan fast on a full search. I wanted something different: a pipeline that runs on a schedule, unattended, finds roles, scores them, preps everything, and emails me the results before I open my laptop.
 
-So I built one the way I build client systems. $0–5/month, fully autonomous, open source, MIT licensed.
+So I built one the way I build client systems. $0–12/month, fully autonomous, open source, MIT licensed.
 
 ---
 
@@ -78,7 +78,7 @@ That's the system working on its creator, in production, on a real high-compensa
 
 ---
 
-## 🎯 Who This Is For
+## 👥 Who This Is For
 
 - Engineers, automation specialists, solutions architects, PMs, and technical operators actively job hunting
 - People who refuse to spray-and-pray with auto-appliers that get your accounts flagged
@@ -364,31 +364,22 @@ Download [LM Studio](https://lmstudio.ai), click Discover, download a model (Qwe
 
 ## 📊 Cost
 
-### Self-Hosted (Full Power)
+### Self-Hosted (Recommended — Full Power)
 
 | Component | With Free AI | With GPT-5 mini |
 |-----------|-----------|-------------|
-| DigitalOcean droplet (1GB) | $6 | $6 |
+| VPS (2GB droplet, recommended) | $12 | $12 |
 | AI (Google AI Studio / LM Studio) | $0 | — |
 | AI (OpenAI GPT-5 mini) | — | ~$3-5 |
 | Airtable (free, 1,000 records) | $0 | $0 |
 | Job scanning (Greenhouse/Ashby/Lever APIs) | $0 | $0 |
 | JobSpy (LinkedIn + Indeed) | $0 | $0 |
-| Email notifications (Gmail SMTP) | $0 | $0 |
-| **Total** | **$6/month** | **~$9-11/month** |
+| Email notifications (Resend or Gmail) | $0 | $0 |
+| **Total** | **$12/month** | **~$15-17/month** |
 
-### n8n Cloud (No Infrastructure)
+A 1GB droplet ($6/month) runs the core stack but can't run both sidecars simultaneously — OOM risk under load. Start with 2GB unless you're comfortable stopping sidecars on demand.
 
-| Component | With Free AI | With GPT-5 mini |
-|-----------|-----------|-------------|
-| n8n Cloud Starter | $24 | $24 |
-| AI (Google AI Studio) | $0 | — |
-| AI (OpenAI GPT-5 mini) | — | ~$3-5 |
-| Airtable | $0 | $0 |
-| Job scanning (Greenhouse/Ashby/Lever APIs) | $0 | $0 |
-| **Total** | **$24/month** | **~$27-29/month** |
-
-### Fully Local (Zero Cost)
+### Fully Local — n8n Desktop (Zero Cost)
 
 | Component | Cost |
 |-----------|------|
@@ -396,15 +387,31 @@ Download [LM Studio](https://lmstudio.ai), click Discover, download a model (Qwe
 | LM Studio + Gemma 4 / Qwen 3 | $0 |
 | Airtable (free) | $0 |
 | Greenhouse/Ashby/Lever APIs | $0 |
+| Gmail SMTP (free) | $0 |
 | **Total** | **$0/month** |
+
+Only runs when your laptop is on. No 24/7 scheduling.
+
+### n8n Cloud (If You Already Pay for It)
+
+| Component | With Free AI | With GPT-5 mini |
+|-----------|-----------|-------------|
+| n8n Cloud Starter | €20 | €20 |
+| AI (Google AI Studio) | $0 | — |
+| AI (OpenAI GPT-5 mini) | — | ~$3-5 |
+| Airtable | $0 | $0 |
+| Job scanning (Greenhouse/Ashby/Lever APIs) | $0 | $0 |
+| **Total** | **€20/month** | **~€23-25/month** |
+
+*n8n Cloud pricing as of April 2026 — verify at [n8n.io/pricing](https://n8n.io/pricing). Cloud doesn't support the JobSpy or CV renderer sidecars, so LinkedIn/Indeed scanning and DOCX CV generation aren't available on this tier.*
 
 ### Per-Job Cost Breakdown
 
 | Action | GPT-5 mini | Gemma 4 (free) |
 |--------|-----------|----------------|
 | Job evaluation | ~$0.003 | $0 |
-| Interview prep (High Fit only) | ~$0.015 | $0 |
-| CV tailoring (High Fit only) | ~$0.010 | $0 |
+| Interview prep (High Fit only) | ~$0.007 | $0 |
+| CV tailoring (High Fit only) | ~$0.008 | $0 |
 | **Total per High Fit job** | **~$0.02** | **$0** |
 | **Total per Low/Medium job** | **~$0.003** | **$0** |
 
@@ -459,9 +466,9 @@ You need 2 credentials in n8n:
 | **Airtable** | Airtable Personal Access Token | Your Airtable PAT with read/write access to the base |
 | **AI Provider** | OpenAI API | Base URL + API key from the [AI Providers table](#-ai-providers--bring-your-own-model) |
 
-For email notifications, add one of:
-- **Gmail** — App password + Send Email node (recommended for most users)
-- **Resend** — HTTP API, free 100 emails/day (recommended for DigitalOcean, which blocks SMTP)
+For email notifications:
+- **Resend** (default — nodes ship pre-wired) — HTTP API, free 100 emails/day, works on any host including DigitalOcean
+- **Gmail** (alternative) — App password + SMTP, works on n8n Desktop and most hosts except DigitalOcean. Requires swapping Resend nodes to Send Email nodes — see [NOTIFICATION-SETUP.md](docs/NOTIFICATION-SETUP.md)
 
 ### 4. Configure Your Profile (10 minutes)
 

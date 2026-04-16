@@ -1,6 +1,6 @@
 # AI Providers Guide
 
-JobSignal uses a single OpenAI-compatible credential in n8n. Every AI workflow — scoring, interview prep, CV tailoring — inherits from this one credential. Switching providers means changing two fields (Base URL + API Key) and nothing else. No workflow edits, no prompt changes, no node swaps.
+JobSignal uses a single OpenAI-compatible credential in n8n. Every AI workflow — scoring, interview prep, CV tailoring — uses this one credential. Switching providers means updating the credential's Base URL + API Key, plus selecting your model in each OpenAI node (3 nodes total: 2 in the Evaluator, 1 in the Tailor). No prompt changes, no workflow logic changes.
 
 ---
 
@@ -25,7 +25,13 @@ In n8n:
 3. Change the **API Key** to your provider's key
 4. Save
 
-Every workflow picks up the change immediately. No restarts needed.
+Then update the model in each OpenAI node:
+
+1. Open Workflow 2 (Evaluator) — update the model in both OpenAI nodes (scoring + interview prep)
+2. Open Workflow 3 (Tailor) — update the model in the CV rewrite OpenAI node
+3. In each node: click the **Model** dropdown and select or paste your model string
+
+That's 3 nodes to update total. Takes about 2 minutes.
 
 ---
 
@@ -49,11 +55,13 @@ The best option for most users. Gemma 4 26B produces quality output comparable t
 
 ### Model Setting
 
-In your Airtable **Profile** table, set the **AI Model** field to:
+In n8n, open each OpenAI node (2 in Evaluator, 1 in Tailor) and set the model to:
 
 ```
 gemma-4-26b-a4b-it
 ```
+
+You may need to use the expression editor to paste this as a custom value, since it won't appear in the dropdown.
 
 ### Rate Limits (as of April 2026)
 
@@ -102,11 +110,13 @@ The highest quality output. GPT-5 mini produces the most consistent JSON formatt
 
 ### Model Setting
 
-In your Airtable **Profile** table, set the **AI Model** field to:
+In n8n, open each OpenAI node (2 in Evaluator, 1 in Tailor) and set the model to:
 
 ```
 gpt-5-mini
 ```
+
+GPT-5 mini appears in the n8n OpenAI node's model dropdown — no expression editor needed.
 
 ### Per-Job Costs
 
@@ -151,7 +161,7 @@ Run AI inference locally with a graphical interface. Best if you have a GPU (NVI
 
 ### Model Setting
 
-In your Airtable **Profile** table, set the **AI Model** field to whatever model you loaded in LM Studio. The exact string doesn't matter for local servers — n8n sends it, but LM Studio uses whatever model is currently loaded regardless.
+In n8n, open each OpenAI node (2 in Evaluator, 1 in Tailor) and set the model to whatever you loaded in LM Studio. The exact string doesn't matter strictly — LM Studio uses whichever model you have loaded in the server regardless of what n8n sends. You can set it to `qwen3:8b` or `local-model` or anything recognizable.
 
 ### Performance Notes
 
@@ -191,7 +201,7 @@ Same as LM Studio but command-line based. Better for headless servers or if you 
 
 ### Model Setting
 
-Set the **AI Model** field in your Profile table to match the model you pulled:
+In n8n, open each OpenAI node (2 in Evaluator, 1 in Tailor) and set the model string to match the Ollama model you pulled:
 
 ```
 qwen3:8b
@@ -222,7 +232,7 @@ Access 300+ models through a single API. Useful for experimentation or if you wa
 
 ### Model Setting
 
-Set the **AI Model** field to the OpenRouter model string, e.g.:
+In n8n, open each OpenAI node (2 in Evaluator, 1 in Tailor) and set the model to the OpenRouter model string, e.g.:
 
 ```
 google/gemma-4-26b-a4b-it
@@ -251,7 +261,7 @@ Check [openrouter.ai/models](https://openrouter.ai/models) for available models 
 ## Troubleshooting
 
 **AI node returns error "model not found"**
-Check that the model string in your Profile table's AI Model field exactly matches what your provider expects. Google AI Studio uses `gemma-4-26b-a4b-it`, not `gemma-4` or `gemma4`.
+Check that the model string in each OpenAI node exactly matches what your provider expects. Google AI Studio uses `gemma-4-26b-a4b-it`, not `gemma-4` or `gemma4`.
 
 **Output is wrapped in markdown fences or preamble**
 Turn OFF "Output Content as JSON" in the OpenAI node. The Parse nodes handle stripping automatically.

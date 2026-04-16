@@ -5,7 +5,7 @@
 <h1 align="center">JobSignal Engine</h1>
 
 <p align="center">
-  <strong>JobSignal treats your job search like a sales pipeline — it finds roles, scores them, tailors your CV, and preps interviews before you wake up. You just click "Apply."</strong>
+  <strong>JobSignal treats your job search like a sales pipeline — it finds roles, scores them, tailors your CV, and preps your interview answers before you wake up. You just review and apply.</strong>
 </p>
 
 <p align="center">
@@ -13,13 +13,14 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License"/></a>
   <a href="https://n8n.io"><img src="https://img.shields.io/badge/Built_with-n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white" alt="n8n"/></a>
   <a href="https://airtable.com"><img src="https://img.shields.io/badge/Database-Airtable-18BFFF?style=for-the-badge&logo=airtable&logoColor=white" alt="Airtable"/></a>
-  <img src="https://img.shields.io/badge/AI_Cost-$0%2Fmonth-2A9D4A?style=for-the-badge" alt="AI Cost"/>
+  <img src="https://img.shields.io/badge/AI_Cost-$0--5%2Fmonth-2A9D4A?style=for-the-badge" alt="AI Cost"/>
 </p>
 
 <p align="center">
   <a href="#-the-problem">The Problem</a> •
   <a href="#-what-jobsignal-does">What It Does</a> •
   <a href="#-one-jobs-journey">One Job's Journey</a> •
+  <a href="#%EF%B8%8F-gotchas--lessons-learned">Gotchas</a> •
   <a href="#-how-jobsignal-compares">Comparison</a> •
   <a href="#-architecture">Architecture</a> •
   <a href="#-ai-providers">AI Providers</a> •
@@ -30,9 +31,7 @@
 
 ---
 
-> **Companies use AI to filter you out. JobSignal gives you AI to filter them first — autonomously, 24/7, for $0.**
-
-> 📹 **Demo video coming soon** — scan runs → alert fires → tailored CV appears in Airtable
+> **Companies use AI to filter you out. JobSignal gives you AI to filter them first — autonomously, 24/7, for $0–5/month.**
 
 ---
 
@@ -57,7 +56,25 @@
 
 ## 🧑 Why I Built This
 
-I'm an automation architect who runs self-hosted n8n in production for real clients. When I started my own job search, I couldn't find a tool that worked the way I build systems — autonomous, observable, cost-transparent. I tried career-ops — it burned through my Claude Pro plan in minutes and needed me sitting at the terminal the whole time. I wanted a job search engine that runs itself: finds roles, scores them, preps everything, and emails me the results. So I built one. $0-6/month, fully autonomous, open source.
+I'm an automation architect. I run self-hosted n8n in production for real clients — including a 15-module AI automation ecosystem for a Canadian immigration law firm that saves the team significant weekly hours on case intake, document prep, and client communication.
+
+When I started my own job search, I looked at what was out there. career-ops is the most interesting open-source tool in the space, but it runs interactively from your terminal and — in my experience — burns through a $20/month Claude Pro plan fast on a full search. I wanted something different: a pipeline that runs on a schedule, unattended, finds roles, scores them, preps everything, and emails me the results before I open my laptop.
+
+So I built one the way I build client systems. $0–5/month, fully autonomous, open source, MIT licensed.
+
+---
+
+## 🎯 Does It Actually Work?
+
+I use this for my own job search. In April 2026 — right before this repo went public — JobSignal flagged a Senior AI Agents role at a major crypto exchange. It scored the role 9.1 against my profile, generated my interview prep, and tailored my CV. Comp range: $130K–$260K USD, fully remote.
+
+I applied. I'm currently in interview process for it.
+
+That's the system working on its creator, in production, on a real high-compensation role. Not a demo. Not a synthetic test. An actual interview I'm preparing for right now.
+
+**On verification:** I'm not naming the company while the interview process is active — that's respect for the recruiter, not secrecy. I'm not posting private recruiter emails, period. The Airtable record has a scan timestamp from before this repo went public. If anyone wants to see the evaluation reasoning with company name redacted, open an issue and I'll share it.
+
+*(Updates to come once the process concludes — offer, rejection, or anything in between.)*
 
 ---
 
@@ -78,7 +95,7 @@ Every job search tool in 2026 falls into one of two traps.
 
 **Trap 1: Spray and Pray.** LoopCV, LazyApply, Sonara, ApplyPilot. They auto-apply to hundreds of jobs. Your name lands on every recruiter's "mass applicant" list, your accounts get flagged, and you get a 1-2% response rate on untargeted applications. Quantity without quality.
 
-**Trap 2: Manual with AI polish.** Teal, Careerflow, career-ops. They help you write better resumes and evaluate individual jobs, but discovery and pipeline management are still manual. You're still scrolling LinkedIn at midnight hoping the algorithm surfaces something relevant. And career-ops — the best of the bunch — burns your $20/month Claude Pro plan and requires you to sit at a terminal the entire time.
+**Trap 2: Manual with AI polish.** Teal, Careerflow, career-ops. They help you write better resumes and evaluate individual jobs, but discovery and pipeline management are still manual. You're still scrolling LinkedIn at midnight hoping the algorithm surfaces something relevant.
 
 | Tool | Discovers jobs for you? | Runs unattended? | Monthly cost | AI cost |
 |------|:-:|:-:|---:|---:|
@@ -142,9 +159,9 @@ By 9:30 AM, every new relevant job is scored, prepped, and has a tailored CV att
 
 A single job listing flowing through the complete system:
 
-**8:00 AM — Discovery.** The Greenhouse Scanner fires. It hits Anthropic's careers API, finds 12 open roles. The Parse & Filter node checks each title against your keywords ("automation," "engineer," "architect") and location against your geography ("Canada," "Remote Global"). 3 jobs pass. Deduplication checks them against your Pipeline — 2 are new. They enter Airtable with Status: **New**.
+**8:00 AM — Discovery.** The Greenhouse Scanner fires. It hits Linear's careers API, finds 12 open roles. The Parse & Filter node checks each title against your keywords ("automation," "engineer," "architect") and location against your geography ("Canada," "Remote Global"). 3 jobs pass. Deduplication checks them against your Pipeline — 2 are new. They enter Airtable with Status: **New**.
 
-**9:00 AM — Evaluation.** The Evaluator picks up both jobs. It builds a scoring prompt that injects your full profile — skills, target roles, industries, negative filters, seniority level — and sends each job + your profile to the AI. Job #1 (AI Automation Engineer, Anthropic, Remote) scores **9.2 — High Fit**. Job #2 (Data Entry Clerk, Anthropic, Ottawa) scores **1.8 — Low Fit**. Both are updated in Airtable with scores, reasoning, matched/missing skills, and CV tailoring notes.
+**9:00 AM — Evaluation.** The Evaluator picks up both jobs. It builds a scoring prompt that injects your full profile — skills, target roles, industries, negative filters, seniority level — and sends each job + your profile to the AI. Job #1 (AI Automation Engineer, Linear, Remote) scores **9.2 — High Fit**. Job #2 (Data Entry Clerk, Linear, Ottawa) scores **1.8 — Low Fit**. Both are updated in Airtable with scores, reasoning, matched/missing skills, and CV tailoring notes.
 
 **9:00 AM — Alert.** Job #1 scored High. An email fires immediately: job title, company, score, matched skills, and a direct "Apply Now" link. You see it on your phone over coffee.
 
@@ -152,11 +169,26 @@ A single job listing flowing through the complete system:
 
 **9:30 AM — CV Tailoring.** The Tailor workflow polls for High Fit jobs without a tailored CV. It finds Job #1, sends your CV markdown + the JD + the Evaluator's tailoring notes to the AI. The AI rewrites your summary, reorders skills to match the JD, adjusts project descriptions to emphasize relevant experience. A Python sidecar converts the markdown to a polished DOCX. The file is uploaded directly to the Airtable record as an attachment.
 
-**6:00 PM — Daily Digest.** The Alerter sends your evening email: "2 new jobs today. 1 High Fit. 0 awaiting review. 3 applied this week." With a card for the Anthropic role showing score, skills, and the apply link.
+**6:00 PM — Daily Digest.** The Alerter sends your evening email: "2 new jobs today. 1 High Fit. 0 awaiting review. 3 applied this week." With a card for the Linear role showing score, skills, and the apply link.
 
 **Sunday Midnight — Housekeeping.** Job #2 (Low Fit, 1.8) has been sitting in Evaluated for 7 days. The Housekeeper archives it. An application you submitted 31 days ago with no response? Auto-closed with a note: "No response after 30 days." Your pipeline stays clean.
 
-**You did nothing.** The system found the job, scored it, prepped your interview, tailored your CV, and told you about it. You clicked "Apply."
+**You did nothing.** The system found the job, scored it, prepped your interview, tailored your CV, and told you about it. You review, hit apply, move on.
+
+---
+
+## ⚠️ Gotchas & Lessons Learned
+
+Hard-won knowledge from building and running JobSignal in production. Save yourself the debugging:
+
+- **Airtable free tier caps at 1,000 records per base.** Dedicate a separate workspace to JobSignal or writes will silently fail. The Housekeeper's weekly auto-archive keeps the count manageable.
+- **`require('crypto')` is blocked in n8n Code nodes.** JobSignal uses a pure-JS FNV-1a hash for job deduplication instead of SHA-256.
+- **Greenhouse slug guessing has a ~60% failure rate.** Many tech companies have migrated to Ashby. Always verify API endpoints before adding to Tracked Companies — a `{"jobs":[],"total":0}` response means the endpoint works, just no matching jobs.
+- **Airtable multi-select fields reject unknown values.** AI-generated skill lists will fail if the values don't already exist as options. JobSignal uses long text fields for Matched/Missing Skills to avoid this.
+- **DigitalOcean blocks SMTP ports (465, 587) by default.** Use Resend (HTTP API) instead, or open a support ticket to unblock SMTP.
+- **n8n's "Output Content as JSON" toggle doesn't work with all providers.** For Gemma 4 and other open-source models, turn it off and enforce JSON output via the system prompt instead.
+- **Open-source models wrap responses in `<thought>` tags.** The Parse nodes include stripping logic to handle this — extracting clean JSON or CV content from thinking preamble.
+- **n8n parallel fan-out into a single Code node causes "node hasn't been executed" errors.** Chain Airtable queries sequentially, not in parallel. The Housekeeper learned this the hard way.
 
 ---
 
@@ -334,7 +366,7 @@ Download [LM Studio](https://lmstudio.ai), click Discover, download a model (Qwe
 
 ### Self-Hosted (Full Power)
 
-| Component | Free Tier | Budget Tier |
+| Component | With Free AI | With GPT-5 mini |
 |-----------|-----------|-------------|
 | DigitalOcean droplet (1GB) | $6 | $6 |
 | AI (Google AI Studio / LM Studio) | $0 | — |
@@ -347,7 +379,7 @@ Download [LM Studio](https://lmstudio.ai), click Discover, download a model (Qwe
 
 ### n8n Cloud (No Infrastructure)
 
-| Component | Free Tier | Budget Tier |
+| Component | With Free AI | With GPT-5 mini |
 |-----------|-----------|-------------|
 | n8n Cloud Starter | $24 | $24 |
 | AI (Google AI Studio) | $0 | — |
@@ -376,7 +408,7 @@ Download [LM Studio](https://lmstudio.ai), click Discover, download a model (Qwe
 | **Total per High Fit job** | **~$0.02** | **$0** |
 | **Total per Low/Medium job** | **~$0.003** | **$0** |
 
-At 30 new jobs/day with 3 High Fits, that's approximately $0.15/day or $3-5/month on GPT-5 mini. Or $0 on Gemma 4.
+At 30 new jobs/day with 3 High Fits, that's ~$0.15/day or **~$3-5/month** on GPT-5 mini. Or $0 on Gemma 4.
 
 ---
 
@@ -541,6 +573,20 @@ jobsignal-engine/
 
 ---
 
+## 🫡 Honest Limitations
+
+I built this because I use it daily. That doesn't mean it's magic. Things you should know before committing 30 minutes of setup:
+
+- **Scoring quality depends on your Profile.** Garbage in, garbage out. A thin Profile with vague Target Roles will score every job a 6. A sharp Profile with specific skills, industries, negative filters, and a real CV markdown will score jobs accurately. Budget 20 minutes on the Profile — it's the single highest-leverage thing in the whole system.
+- **Default scoring is tuned for technical roles.** The evaluation prompt assumes you're pursuing engineering, automation, architecture, PM, or technical operator work. For marketing, sales, creative, or legal, you'll want to tune the scoring prompt in Workflow 2. It's ~50 lines of plain English.
+- **LinkedIn scraping is fragile by nature.** JobSpy depends on LinkedIn's public HTML, which LinkedIn occasionally changes to break scrapers. When it breaks, it breaks for everyone on JobSpy at once. Greenhouse/Ashby/Lever API scanners are unaffected — they're on stable public JSON APIs.
+- **Gemma 4 free tier is rate-limited to 1,500 requests/day.** That's enough for 750+ job evaluations, but if you run a huge keyword net (20+ title keywords × 100+ companies) you can hit the ceiling. Fall back to GPT-5 mini (~$3–5/month) when that happens.
+- **n8n Cloud can't run the sidecars.** If you go with n8n Cloud for convenience, you lose JobSpy (LinkedIn/Indeed) and DOCX CV generation. You still get everything else. The full-power setup needs a $6 VPS.
+- **Greenhouse slug discovery is imperfect.** About 40% of companies you add manually will work the first try; the rest need a verified slug. `companies-default.csv` ships with 139 already verified so you can start fast.
+- **This is not an applicant tracking system for recruiters.** It's a personal pipeline for one job seeker. Multi-user, team, or agency use cases need a different tool.
+
+---
+
 ## 🛠️ Self-Hosted Setup (Full Power)
 
 For users who want LinkedIn + Indeed scanning and DOCX CV generation:
@@ -585,25 +631,10 @@ jobspy-scanner:
 
 ---
 
-## ⚠️ Gotchas & Lessons Learned
-
-Hard-won knowledge from building and running JobSignal in production. Save yourself the debugging:
-
-- **Airtable free tier caps at 1,000 records per base.** Dedicate a separate workspace to JobSignal or writes will silently fail. The Housekeeper's weekly auto-archive keeps the count manageable.
-- **`require('crypto')` is blocked in n8n Code nodes.** JobSignal uses a pure-JS FNV-1a hash for job deduplication instead of SHA-256.
-- **Greenhouse slug guessing has a ~60% failure rate.** Many tech companies have migrated to Ashby. Always verify API endpoints before adding to Tracked Companies — a `{"jobs":[],"total":0}` response means the endpoint works, just no matching jobs.
-- **Airtable multi-select fields reject unknown values.** AI-generated skill lists will fail if the values don't already exist as options. JobSignal uses long text fields for Matched/Missing Skills to avoid this.
-- **DigitalOcean blocks SMTP ports (465, 587) by default.** Use Resend (HTTP API) instead, or open a support ticket to unblock SMTP.
-- **n8n's "Output Content as JSON" toggle doesn't work with all providers.** For Gemma 4 and other open-source models, turn it off and enforce JSON output via the system prompt instead.
-- **Open-source models wrap responses in `<thought>` tags.** The Parse nodes include stripping logic to handle this — extracting clean JSON or CV content from thinking preamble.
-- **n8n parallel fan-out into a single Code node causes "node hasn't been executed" errors.** Chain Airtable queries sequentially, not in parallel. The Housekeeper learned this the hard way.
-
----
-
 ## 🗺️ Roadmap
 
 - [ ] **Workflow 5 — Optimizer** — Closed-loop analytics that learns from interview callbacks and rejections to refine scoring over time (v1.1, needs outcome data)
-- [ ] **Shadow Ledger** — Immutable audit trail sub-workflow across all workflows (v1.1)
+- [ ] **Shadow Ledger** — Immutable JSONL audit trail logged alongside Airtable writes. Same pattern I use in other production systems — every workflow run appends a signed record to disk so you can replay, debug, or audit any action the system ever took. (v1.1)
 - [ ] **Story Bank** — Cumulative STAR story database that grows across all evaluated jobs
 - [ ] **Minimum salary filter** — Skip jobs below your floor before AI evaluation
 - [ ] **Negative title filter** — Profile-level exclusions for country-in-title postings

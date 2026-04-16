@@ -66,7 +66,7 @@ So I built one the way I build client systems. $0–5/month, fully autonomous, o
 
 ## 🎯 Does It Actually Work?
 
-I use this for my own job search. In April 2026 — right before this repo went public — JobSignal flagged a Senior AI Agents role at a major crypto exchange. It scored the role 9.1 against my profile, generated my interview prep, and tailored my CV. Comp range: $130K–$260K USD, fully remote.
+I use this for my own job search. In April 2026, before this repo went public, JobSignal flagged a Senior AI Agents role at a major crypto exchange. It scored the role 9.1 against my profile, generated my interview prep, and tailored my CV. Comp range: $130K–$260K USD, fully remote.
 
 I applied. I'm currently in interview process for it.
 

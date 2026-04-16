@@ -103,7 +103,7 @@ Every job search tool in 2026 falls into one of two traps.
 | LazyApply | ❌ | ❌ | $99 | Included |
 | Teal | ❌ | ❌ | $9-44 | Included |
 | career-ops | ✅ (manual trigger) | ❌ | Free | $20 (Claude Pro) |
-| **JobSignal** | **✅ (scheduled)** | **✅** | **$0-6** | **$0** |
+| **JobSignal** | **✅ (scheduled)** | **✅** | **$0-12** | **$0-5** |
 
 **What nobody has built:** A signal-based job search engine that treats your job hunt like a sales pipeline — with autonomous multi-source discovery, structured AI scoring, auto-tailored CVs, interview prep, pipeline management, and daily email digests. All running unattended on a schedule while you sleep.
 
@@ -132,7 +132,7 @@ Sunday midnight:
   →  Alerts you if any jobs are stuck in "New" for 3+ days
 
 You wake up to an email with your top matches, tailored CVs ready,
-interview prep done. You just click "Apply."
+interview prep done. You review and apply.
 ```
 
 By 9:30 AM, every new relevant job is scored, prepped, and has a tailored CV attached to its Airtable record.
@@ -211,8 +211,8 @@ Think of career-ops as a sports car you drive from the terminal. JobSignal is a 
 | **Blasts low-quality applications** | ❌ By design | ❌ | ✅ | ✅ | ❌ |
 | **Self-hostable** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Open source** | ✅ MIT | ✅ MIT | ❌ | ❌ | ❌ |
-| **Monthly cost** | $0-6 | Free (+ $20 Claude Pro) | $49-149 | $99 | $9-44 |
-| **AI cost** | $0 (Gemma 4) | ~$20 (Claude Pro) | Included | Included | Included |
+| **Monthly cost** | $0-12 | Free (+ $20 Claude Pro) | $49-149 | $99 | $9-44 |
+| **AI cost** | $0-5 (Gemma 4 free / GPT-5 mini paid) | ~$20 (Claude Pro) | Included | Included | Included |
 
 ---
 
@@ -587,8 +587,8 @@ I built this because I use it daily. That doesn't mean it's magic. Things you sh
 - **Scoring quality depends on your Profile.** Garbage in, garbage out. A thin Profile with vague Target Roles will score every job a 6. A sharp Profile with specific skills, industries, negative filters, and a real CV markdown will score jobs accurately. Budget 20 minutes on the Profile — it's the single highest-leverage thing in the whole system.
 - **Default scoring is tuned for technical roles.** The evaluation prompt assumes you're pursuing engineering, automation, architecture, PM, or technical operator work. For marketing, sales, creative, or legal, you'll want to tune the scoring prompt in Workflow 2. It's ~50 lines of plain English.
 - **LinkedIn scraping is fragile by nature.** JobSpy depends on LinkedIn's public HTML, which LinkedIn occasionally changes to break scrapers. When it breaks, it breaks for everyone on JobSpy at once. Greenhouse/Ashby/Lever API scanners are unaffected — they're on stable public JSON APIs.
-- **Gemma 4 free tier is rate-limited to 1,500 requests/day.** That's enough for 750+ job evaluations, but if you run a huge keyword net (20+ title keywords × 100+ companies) you can hit the ceiling. Fall back to GPT-5 mini (~$3–5/month) when that happens.
-- **n8n Cloud can't run the sidecars.** If you go with n8n Cloud for convenience, you lose JobSpy (LinkedIn/Indeed) and DOCX CV generation. You still get everything else. The full-power setup needs a $6 VPS.
+- **Gemma 4 free tier is rate-limited to 1,500 requests/day.** That's enough for 500+ job evaluations per day, but if you run a huge keyword net (20+ title keywords × 100+ companies) you can hit the ceiling. Fall back to GPT-5 mini (~$3–5/month) when that happens.
+- **n8n Cloud can't run the sidecars.** If you go with n8n Cloud for convenience, you lose JobSpy (LinkedIn/Indeed) and DOCX CV generation. You still get everything else. The full-power setup needs a $12 VPS.
 - **Greenhouse slug discovery is imperfect.** About 40% of companies you add manually will work the first try; the rest need a verified slug. `companies-default.csv` ships with 139 already verified so you can start fast.
 - **This is not an applicant tracking system for recruiters.** It's a personal pipeline for one job seeker. Multi-user, team, or agency use cases need a different tool.
 

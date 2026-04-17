@@ -56,11 +56,9 @@
 
 ## 🧑 Why I Built This
 
-I'm an automation architect. I run self-hosted n8n in production for real clients — including a 15-module AI automation ecosystem for a Canadian immigration law firm that saves the team significant weekly hours on case intake, document prep, and client communication.
+I build automation systems for a living, was job hunting, and got tired of doing it manually. I looked at career-ops, the most interesting open-source tool in the space, but it runs interactively from your terminal and burns through a Claude Pro plan fast. 
 
-When I started my own job search, I looked at what was out there. career-ops is the most interesting open-source tool in the space, but it runs interactively from your terminal and — in my experience — burns through a $20/month Claude Pro plan fast on a full search. I wanted something different: a pipeline that runs on a schedule, unattended, finds roles, scores them, preps everything, and emails me the results before I open my laptop.
-
-So I built one the way I build client systems. $0–12/month, fully autonomous, open source, MIT licensed.
+I wanted something different: a pipeline that runs on a schedule, unattended, finds roles, scores them, preps everything, and emails me the results before I open my laptop. So I built one the way I build client systems. $0–12/month, fully autonomous, MIT licensed.
 
 ---
 
@@ -72,9 +70,7 @@ I applied. I'm currently in interview process for it.
 
 That's the system working on its creator, in production, on a real high-compensation role. Not a demo. Not a synthetic test. An actual interview I'm preparing for right now.
 
-**On verification:** I'm not naming the company while the interview process is active — that's respect for the recruiter, not secrecy. I'm not posting private recruiter emails, period. The Airtable record has a scan timestamp from before this repo went public. If anyone wants to see the evaluation reasoning with company name redacted, open an issue and I'll share it.
-
-*(Updates to come once the process concludes — offer, rejection, or anything in between.)*
+**On verification:** I'm not naming the company while the process is active, that's respect for the recruiter. Happy to share the evaluation with the company name redacted if anyone's curious.
 
 ---
 
@@ -687,7 +683,7 @@ Also built: [Autonomous GTM Engine](https://github.com/RZ-Logic/autonomous-gtm-e
 ---
 
 <p align="center">
-  <strong>If JobSignal saved you 10+ hours of job searching, star the repo ⭐</strong>
+  <strong>If you find it useful, a star helps others find it.</strong>
   <br><br>
   Built in Toronto by someone who got tired of scrolling LinkedIn at midnight.
 </p>

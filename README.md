@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+  <img src="assets/demo.gif" alt="JobSignal Engine demo — autonomous job pipeline with AI scoring, tailored CVs, and interview prep" width="900"/>
+</p>
+
+<p align="center">
   <a href="#-quickstart"><img src="https://img.shields.io/badge/Setup-30_minutes-2A9D4A?style=for-the-badge" alt="Setup"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License"/></a>
   <a href="https://n8n.io"><img src="https://img.shields.io/badge/Built_with-n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white" alt="n8n"/></a>
@@ -95,9 +99,9 @@ Every job search tool in 2026 falls into one of two traps.
 
 | Tool | Discovers jobs for you? | Runs unattended? | Monthly cost | AI cost |
 |------|:-:|:-:|---:|---:|
-| LoopCV | ❌ | ❌ | $49-149 | Included |
-| LazyApply | ❌ | ❌ | $99 | Included |
-| Teal | ❌ | ❌ | $9-44 | Included |
+| LoopCV | ❌ | ❌ | $0-90 | Included |
+| LazyApply | ❌ | ❌ | $99-999/yr | Included |
+| Teal | ❌ | ❌ | $13/wk (~$52+/mo) | Included |
 | career-ops | ✅ (manual trigger) | ❌ | Free | $20 (Claude Pro) |
 | **JobSignal** | **✅ (scheduled)** | **✅** | **$0-12** | **$0-5** |
 

@@ -68,11 +68,11 @@ I wanted something different: a pipeline that runs on a schedule, unattended, fi
 
 ## 🎯 Does It Actually Work?
 
-I use this for my own job search. In April 2026, before this repo went public, JobSignal flagged a Senior AI Agents role at a major crypto exchange. It scored the role 9.1 against my profile, generated my interview prep, and tailored my CV. Comp range: $130K–$260K USD, fully remote.
+I use this for my own job search. In April 2026, before this repo went public: JobSignal flagged a senior AI role at a major tech company. It scored the role 9.1 against my profile, generated my interview prep, and tailored my CV. Comp range: $130K–$260K USD, fully remote.
 
 I applied. I'm currently in interview process for it.
 
-That's the system working on its creator, in production, on a real high-compensation role. Not a demo. Not a synthetic test. An actual interview I'm preparing for right now.
+That's the system working on its creator, in production, on a real role. Not a demo. Not a synthetic test. An actual interview I'm preparing for right now.
 
 **On verification:** I'm not naming the company while the process is active, that's respect for the recruiter. Happy to share the evaluation with the company name redacted if anyone's curious.
 

@@ -211,7 +211,7 @@ Think of career-ops as a sports car you drive from the terminal. JobSignal is a 
 | **Blasts low-quality applications** | ❌ By design | ❌ | ✅ | ✅ | ❌ |
 | **Self-hostable** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Open source** | ✅ MIT | ✅ MIT | ❌ | ❌ | ❌ |
-| **Monthly cost** | $0-12 | Free (+ $20 Claude Pro) | $49-149 | $99 | $9-44 |
+| **Monthly cost** | $0-12 | Free (+ $20 Claude Pro) | $0-90 | $99-999/yr | $13/wk (~$52+/mo) |
 | **AI cost** | $0-5 (Gemma 4 free / GPT-5 mini paid) | ~$20 (Claude Pro) | Included | Included | Included |
 
 ---
